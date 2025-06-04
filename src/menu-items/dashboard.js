@@ -1,10 +1,6 @@
-// assets
 import { IconDashboard } from '@tabler/icons-react';
 
-// constant
 const icons = { IconDashboard };
-
-// ==============================|| DASHBOARD MENU ITEMS ||============================== //
 
 const dashboard = {
   id: 'dashboard',
@@ -14,7 +10,7 @@ const dashboard = {
       id: 'default',
       title: 'Tổng quát',
       type: 'item',
-      url: '/trang-chu',
+      url: '/',
       icon: icons.IconDashboard,
       breadcrumbs: true
     }

@@ -1,5 +1,5 @@
 const config = {
-  fontFamily: `'Roboto', sans-serif`,
+  fontFamily: `'Inter', sans-serif`,
   borderRadius: 8
 };
 
