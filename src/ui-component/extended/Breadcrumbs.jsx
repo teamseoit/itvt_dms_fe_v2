@@ -41,10 +41,8 @@ export default function Breadcrumbs({
   icons,
   links,
   maxItems,
-  rightAlign = true,
+  rightAlign = false,
   separator = IconChevronRight,
-  title = true,
-  titleBottom,
   sx,
   ...others
 }) {
@@ -152,7 +150,6 @@ export default function Breadcrumbs({
             alignItems={rightAlign ? 'center' : 'flex-start'}
             spacing={1}
           >
-            {title && !titleBottom && <BTitle title={main.title} />}
             <Grid>
               <MuiBreadcrumbs
                 aria-label="breadcrumb"
@@ -168,7 +165,6 @@ export default function Breadcrumbs({
                 {mainContent}
               </MuiBreadcrumbs>
             </Grid>
-            {title && titleBottom && <BTitle title={main.title} />}
           </Grid>
         </Box>
         {card === false && divider !== false && <Divider sx={{ mt: 2 }} />}
@@ -258,9 +254,7 @@ export default function Breadcrumbs({
               alignItems={rightAlign ? 'center' : 'flex-start'}
               spacing={1}
             >
-              {title && !titleBottom && <BTitle title={custom ? heading : item?.title} />}
               <Grid>{tempContent}</Grid>
-              {title && titleBottom && <BTitle title={custom ? heading : item?.title} />}
             </Grid>
           </Box>
           {card === false && divider !== false && <Divider sx={{ mt: 2 }} />}
@@ -286,8 +280,6 @@ Breadcrumbs.propTypes = {
   rightAlign: PropTypes.bool,
   separator: PropTypes.any,
   IconChevronRight: PropTypes.any,
-  title: PropTypes.bool,
-  titleBottom: PropTypes.bool,
   sx: PropTypes.any,
   others: PropTypes.any
 };
