@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   const startVerification = () => {
     setIsVerifying(true);
@@ -16,17 +17,19 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(true);
   };
 
-  const login = () => {
+  const login = (id) => {
+    setUserId(id);
     startVerification();
   };
 
   const logout = () => {
     setIsAuthenticated(false);
     setIsVerifying(false);
+    setUserId(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isVerifying, login, logout, completeVerification }}>
+    <AuthContext.Provider value={{ isAuthenticated, isVerifying, userId, login, logout, completeVerification }}>
       {children}
     </AuthContext.Provider>
   );

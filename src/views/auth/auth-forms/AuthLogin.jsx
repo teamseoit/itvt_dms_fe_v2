@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import { useTheme } from '@mui/material/styles';
 import Button from '@mui/material/Button';
@@ -12,6 +13,7 @@ import Box from '@mui/material/Box';
 
 import AnimateButton from 'ui-component/extended/AnimateButton';
 import { useAuth } from 'contexts/AuthContext';
+import axiosInstance from 'api/axios';
 
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -21,7 +23,11 @@ export default function AuthLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -30,25 +36,50 @@ export default function AuthLogin() {
     event.preventDefault();
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    login();
-    navigate('/xac-thuc-otp');
+    setIsLoading(true);
+
+    try {
+      const response = await axiosInstance.post('/auth/login', {
+        username,
+        password
+      });
+
+      const { message, user_id } = response.data;
+      toast.success(message || 'Đăng nhập thành công');
+      login(user_id);
+      navigate('/xac-thuc-otp');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Đăng nhập thất bại');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <FormControl fullWidth sx={{ ...theme.typography.customInput }}>
-        <InputLabel htmlFor="outlined-adornment-email-login">Email Address / Username</InputLabel>
-        <OutlinedInput id="outlined-adornment-email-login" type="email" name="email" />
+        <InputLabel htmlFor="outlined-adornment-email-login">Email / Tên đăng nhập</InputLabel>
+        <OutlinedInput 
+          id="outlined-adornment-email-login" 
+          type="text" 
+          name="username" 
+          value={username} 
+          onChange={(e) => setUsername(e.target.value)}
+          required 
+        />
       </FormControl>
 
       <FormControl fullWidth sx={{ ...theme.typography.customInput }}>
-        <InputLabel htmlFor="outlined-adornment-password-login">Password</InputLabel>
+        <InputLabel htmlFor="outlined-adornment-password-login">Mật khẩu</InputLabel>
         <OutlinedInput
           id="outlined-adornment-password-login"
           type={showPassword ? 'text' : 'password'}
           name="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
           endAdornment={
             <InputAdornment position="end">
               <IconButton
@@ -68,8 +99,15 @@ export default function AuthLogin() {
 
       <Box sx={{ mt: 2 }}>
         <AnimateButton>
-          <Button color="secondary" fullWidth size="large" type="submit" variant="contained">
-            Đăng nhập
+          <Button 
+            color="secondary" 
+            fullWidth 
+            size="large" 
+            type="submit" 
+            variant="contained"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Đang xử lý...' : 'Đăng nhập'}
           </Button>
         </AnimateButton>
       </Box>
