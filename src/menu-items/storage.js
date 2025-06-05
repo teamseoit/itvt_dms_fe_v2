@@ -13,6 +13,13 @@ const storage = {
       icon: icons.IconDatabaseCog,
       children: [
         {
+          id: 'statistics',
+          title: 'Thống kê',
+          type: 'item',
+          url: '/thong-ke',
+          breadcrumbs: true
+        },
+        {
           id: 'backup-data',
           title: 'Backup dữ liệu',
           type: 'item',
