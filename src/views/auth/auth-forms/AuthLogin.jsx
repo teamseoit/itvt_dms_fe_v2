@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { useTheme } from '@mui/material/styles';
 import Button from '@mui/material/Button';
@@ -10,12 +11,15 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import Box from '@mui/material/Box';
 
 import AnimateButton from 'ui-component/extended/AnimateButton';
+import { useAuth } from 'contexts/AuthContext';
 
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export default function AuthLogin() {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => {
@@ -26,11 +30,17 @@ export default function AuthLogin() {
     event.preventDefault();
   };
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    login();
+    navigate('/xac-thuc-otp');
+  };
+
   return (
-    <>
+    <form onSubmit={handleSubmit}>
       <FormControl fullWidth sx={{ ...theme.typography.customInput }}>
         <InputLabel htmlFor="outlined-adornment-email-login">Email Address / Username</InputLabel>
-        <OutlinedInput id="outlined-adornment-email-login" type="email" value="phuc" name="email" />
+        <OutlinedInput id="outlined-adornment-email-login" type="email" name="email" />
       </FormControl>
 
       <FormControl fullWidth sx={{ ...theme.typography.customInput }}>
@@ -38,7 +48,6 @@ export default function AuthLogin() {
         <OutlinedInput
           id="outlined-adornment-password-login"
           type={showPassword ? 'text' : 'password'}
-          value="1234"
           name="password"
           endAdornment={
             <InputAdornment position="end">
@@ -64,6 +73,6 @@ export default function AuthLogin() {
           </Button>
         </AnimateButton>
       </Box>
-    </>
+    </form>
   );
 }
