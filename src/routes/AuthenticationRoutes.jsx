@@ -4,6 +4,7 @@ import Loadable from 'ui-component/Loadable';
 import MinimalLayout from 'layout/MinimalLayout';
 
 const LoginPage = Loadable(lazy(() => import('views/auth/authentication/Login')));
+const VerifyPage = Loadable(lazy(() => import('views/verify/Verify')));
 
 const AuthenticationRoutes = {
   path: '/',
@@ -12,6 +13,10 @@ const AuthenticationRoutes = {
     {
       path: '/dang-nhap',
       element: <LoginPage />
+    },
+    {
+      path: '/xac-thuc-otp',
+      element: <VerifyPage />
     }
   ]
 };
