@@ -48,7 +48,7 @@ export default function AuthLogin() {
 
       const { message, user_id } = response.data;
       toast.success(message || 'Đăng nhập thành công');
-      login(user_id);
+      login({ _id: user_id });
       navigate('/xac-thuc-otp');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Đăng nhập thất bại');

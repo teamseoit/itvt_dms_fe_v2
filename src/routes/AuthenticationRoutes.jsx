@@ -13,7 +13,7 @@ const AuthenticationRoutes = {
   element: <MinimalLayout />,
   children: [
     {
-      path: '/dang-nhap',
+      path: 'dang-nhap',
       element: (
         <PublicRoute>
           <LoginPage />
@@ -21,7 +21,7 @@ const AuthenticationRoutes = {
       )
     },
     {
-      path: '/xac-thuc-otp',
+      path: 'xac-thuc-otp',
       element: (
         <VerifyRoute>
           <VerifyPage />
