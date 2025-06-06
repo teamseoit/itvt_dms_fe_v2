@@ -13,17 +13,17 @@ const account = {
       icon: icons.IconUserCircle,
       children: [
         {
-          id: 'user',
-          title: 'Tài khoản',
-          type: 'item',
-          url: '/trang-chu/danh-sach-tai-khoan',
-          breadcrumbs: true
-        },
-        {
           id: 'role',
           title: 'Nhóm quyền', 
           type: 'item',
-          url: '/trang-chu/danh-sach-nhom-quyen',
+          url: '/nhom-quyen',
+          breadcrumbs: true
+        },
+        {
+          id: 'user',
+          title: 'Tài khoản',
+          type: 'item',
+          url: '/tai-khoan',
           breadcrumbs: true
         }
       ]

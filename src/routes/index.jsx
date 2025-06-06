@@ -11,6 +11,9 @@ const LoginPage = Loadable(lazy(() => import('views/auth/authentication/Login'))
 const VerifyPage = Loadable(lazy(() => import('views/verify/Verify')));
 const Dashboard = Loadable(lazy(() => import('views/dashboard')));
 
+// Group User
+const GroupUserList = Loadable(lazy(() => import('views/group-user/GroupUserList')));
+
 function RootLayout() {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <MainLayout /> : <MinimalLayout />;
@@ -78,16 +81,10 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
         children: [
-          // Thêm các route khác ở đây
-          // {
-          //   path: '/dich-vu/*',
-          //   element: <div>Trang dịch vụ</div>
-          // },
-          // {
-          //   path: '/hop-dong/*',
-          //   element: <div>Trang hợp đồng</div>
-          // }
-          // ... các route khác
+          {
+            path: 'nhom-quyen/*',
+            element: <GroupUserList />
+          }
         ]
       }
     ]
