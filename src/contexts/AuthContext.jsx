@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(true);
     setUserInfo(user_info);
     
-    navigate('/dashboard');
+    navigate('/');
   };
 
   const login = (user_info) => {
