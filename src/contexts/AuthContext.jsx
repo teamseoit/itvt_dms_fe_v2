@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(true);
     setUserInfo(user_info);
     
+    toast.success('Đăng nhập thành công!');
     navigate('/');
   };
 
