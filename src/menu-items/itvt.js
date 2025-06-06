@@ -3,7 +3,7 @@ import { IconBrandSketch } from '@tabler/icons-react';
 const icons = { IconBrandSketch };
 
 const itvt = {
-  id: 'service',
+  id: 'itvt-service',
   title: 'Quản lý dịch vụ ITVT',
   type: 'group',
   children: [
