@@ -14,7 +14,7 @@ const router = createBrowserRouter([
         </NavigationScroll>
       </AuthProvider>
     ),
-    children: [MainRoutes, AuthenticationRoutes]
+    children: [AuthenticationRoutes, MainRoutes]
   }
 ], {
   basename: import.meta.env.VITE_APP_BASE_NAME

@@ -3,13 +3,14 @@ import PropTypes from 'prop-types';
 import { useAuth } from 'contexts/AuthContext';
 
 const PublicRoute = ({ children }) => {
-  const { userId, isVerifying } = useAuth();
+  const { isAuthenticated, isVerifying } = useAuth();
 
-  if (userId) {
-    if (isVerifying) {
-      return <Navigate to="/xac-thuc-otp" replace />;
-    }
-    return <Navigate to="/" replace />;
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (isVerifying) {
+    return <Navigate to="/xac-thuc-otp" replace />;
   }
 
   return children;

@@ -6,7 +6,7 @@ const VerifyRoute = ({ children }) => {
   const { isVerifying } = useAuth();
 
   if (!isVerifying) {
-    return <Navigate to="/dang-nhap" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;

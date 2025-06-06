@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
     
     if (token && userInfoStr) {
       const tokenExpiry = localStorage.getItem('tokenExpiry');
+      
       if (tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
         setIsAuthenticated(true);
         setUserInfo(JSON.parse(userInfoStr));
@@ -40,14 +41,14 @@ export const AuthProvider = ({ children }) => {
     expiryDate.setDate(expiryDate.getDate() + TOKEN_EXPIRY_DAYS);
     
     localStorage.setItem('token', token);
-    localStorage.setItem('refreshToken', refresh_token);
     localStorage.setItem('tokenExpiry', expiryDate.getTime().toString());
     localStorage.setItem('userInfo', JSON.stringify(user_info));
     
     setIsVerifying(false);
     setIsAuthenticated(true);
     setUserInfo(user_info);
-    navigate('/');
+    
+    navigate('/dashboard');
   };
 
   const login = (user_info) => {
@@ -62,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
     setIsVerifying(false);
     setUserInfo(null);
-    navigate('/dang-nhap');
+    navigate('/');
   };
 
   return (
