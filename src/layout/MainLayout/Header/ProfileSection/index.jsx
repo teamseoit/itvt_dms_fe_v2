@@ -21,12 +21,14 @@ import useConfig from 'hooks/useConfig';
 
 import User1 from 'assets/images/users/user.jpg';
 import { IconLogout, IconSettings } from '@tabler/icons-react';
+import { useAuth } from 'contexts/AuthContext';
 
 export default function ProfileSection() {
   const theme = useTheme();
   const { borderRadius } = useConfig();
   const [selectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
+  const { logout } = useAuth();
 
   const anchorRef = useRef(null);
 
@@ -40,6 +42,10 @@ export default function ProfileSection() {
     }
 
     setOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
   };
 
   const prevOpen = useRef(open);
@@ -144,7 +150,7 @@ export default function ProfileSection() {
                           <ListItemIcon>
                             <IconLogout stroke={1.5} size="20px" />
                           </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Đăng xuất</Typography>} />
+                          <ListItemText primary={<Typography variant="body2" onClick={handleLogout}>Đăng xuất</Typography>} />
                         </ListItemButton>
                       </List>
                     </Box>

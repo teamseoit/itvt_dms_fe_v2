@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import axiosInstance from 'api/axios';
 
 const AuthContext = createContext(null);
 
@@ -55,15 +57,70 @@ export const AuthProvider = ({ children }) => {
     startVerification(user_info);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('tokenExpiry');
-    localStorage.removeItem('userInfo');
-    setIsAuthenticated(false);
-    setIsVerifying(false);
-    setUserInfo(null);
-    navigate('/');
+  const handleLogout = async () => {
+    const confirmLogout = () => {
+      toast.warn(
+        <div>
+          <p>Bạn có chắc chắn muốn đăng xuất?</p>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px' }}>
+            <button 
+              onClick={() => toast.dismiss()} 
+              style={{ 
+                padding: '6px 12px', 
+                background: '#6c757d', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                cursor: 'pointer' 
+              }}
+            >
+              Hủy
+            </button>
+            <button 
+              onClick={async () => {
+                try {
+                  await axiosInstance.post('/auth/logout', {
+                    user_id: userInfo._id
+                  });
+                  
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('refreshToken'); 
+                  localStorage.removeItem('tokenExpiry');
+                  localStorage.removeItem('userInfo');
+                  setIsAuthenticated(false);
+                  setIsVerifying(false);
+                  setUserInfo(null);
+                  toast.dismiss();
+                  navigate('/');
+                  toast.success('Đăng xuất thành công!');
+                } catch (error) {
+                  toast.error(error.response?.data?.message || 'Lỗi khi đăng xuất');
+                }
+              }}
+              style={{ 
+                padding: '6px 12px', 
+                background: '#dc3545', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                cursor: 'pointer' 
+              }}
+            >
+              Đăng xuất
+            </button>
+          </div>
+        </div>,
+        {
+          position: "top-right",
+          autoClose: false,
+          closeOnClick: false,
+          draggable: false,
+          closeButton: false
+        }
+      );
+    };
+
+    confirmLogout();
   };
 
   return (
