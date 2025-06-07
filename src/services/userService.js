@@ -19,6 +19,10 @@ const USER_API = {
 
   delete: (id) => {
     return axios.delete(`/users/${id}`);
+  },
+
+  changePassword: (id, password) => {
+    return axios.put(`/users/change-password/${id}`, { password });
   }
 };
 

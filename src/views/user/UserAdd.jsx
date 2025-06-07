@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -13,6 +13,10 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import { IconArrowLeft, IconEye, IconEyeOff } from '@tabler/icons-react';
 
 import GROUP_USER_API from '../../services/groupUserService';
@@ -21,9 +25,15 @@ import USER_API from '../../services/userService';
 export default function UserAdd() {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEdit = Boolean(id);
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [groups, setGroups] = useState([]);
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     displayName: '',
@@ -43,9 +53,31 @@ export default function UserAdd() {
     }
   };
 
+  const fetchUserData = async () => {
+    try {
+      const response = await USER_API.getById(id);
+      if (response.data.success) {
+        const userData = response.data.data;
+        setFormData({
+          username: userData.username || '',
+          displayName: userData.display_name || '',
+          password: '',
+          email: userData.email || '',
+          groupId: userData.group_user_id || ''
+        });
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy thông tin người dùng');
+      navigate('/tai-khoan');
+    }
+  };
+
   useEffect(() => {
     fetchGroups();
-  }, []);
+    if (isEdit) {
+      fetchUserData();
+    }
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,15 +98,17 @@ export default function UserAdd() {
       return false;
     }
 
-    if (!formData.password.trim()) {
+    if (!isEdit && !formData.password.trim()) {
       toast.error('Vui lòng nhập mật khẩu');
       return false;
     }
 
-    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$/;
-    if (!passwordRegex.test(formData.password)) {
-      toast.error('Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ thường, chữ in hoa, số và ký tự đặc biệt');
-      return false;
+    if (!isEdit && formData.password) {
+      const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$/;
+      if (!passwordRegex.test(formData.password)) {
+        toast.error('Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ thường, chữ in hoa, số và ký tự đặc biệt');
+        return false;
+      }
     }
 
     if (!formData.email.trim()) {
@@ -96,27 +130,72 @@ export default function UserAdd() {
     return true;
   };
 
+  const validatePassword = () => {
+    if (!newPassword.trim()) {
+      toast.error('Vui lòng nhập mật khẩu mới');
+      return false;
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      toast.error('Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ thường, chữ in hoa, số và ký tự đặc biệt');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     try {
       setLoading(true);
-      const newUser = {
+      const userData = {
         display_name: formData.displayName,
         username: formData.username,
         email: formData.email,
-        password: formData.password,
         group_user_id: formData.groupId
       };
 
-      const response = await USER_API.create(newUser);
-      if (response.data.success) {
-        toast.success('Thêm tài khoản thành công');
+      if (!isEdit) {
+        userData.password = formData.password;
+      }
+
+      const response = isEdit
+        ? await USER_API.update(id, userData)
+        : await USER_API.create(userData);
+
+      if (response?.data?.success) {
+        toast.success(isEdit ? 'Cập nhật tài khoản thành công' : 'Thêm tài khoản thành công');
         navigate('/tai-khoan');
+      } else {
+        toast.error(response?.data?.message || `Có lỗi xảy ra khi ${isEdit ? 'cập nhật' : 'thêm'} tài khoản`);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm tài khoản');
+      console.error('Error:', error);
+      toast.error(error.response?.data?.message || `Có lỗi xảy ra khi ${isEdit ? 'cập nhật' : 'thêm'} tài khoản`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!validatePassword()) return;
+
+    try {
+      setLoading(true);
+      const response = await USER_API.changePassword(id, newPassword);
+      if (response?.data?.success) {
+        toast.success('Thay đổi mật khẩu thành công');
+        setOpenPasswordDialog(false);
+        setNewPassword('');
+      } else {
+        toast.error(response?.data?.message || 'Có lỗi xảy ra khi thay đổi mật khẩu');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi thay đổi mật khẩu');
     } finally {
       setLoading(false);
     }
@@ -128,6 +207,10 @@ export default function UserAdd() {
 
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
+  };
+
+  const toggleShowNewPassword = () => {
+    setShowNewPassword(!showNewPassword);
   };
 
   return (
@@ -142,7 +225,7 @@ export default function UserAdd() {
         >
           Quay lại
         </Button>
-        <Typography variant="h3">Thêm tài khoản mới</Typography>
+        <Typography variant="h3">{isEdit ? 'Cập nhật tài khoản' : 'Thêm tài khoản mới'}</Typography>
       </Box>
 
       <Paper sx={{ p: 3 }}>
@@ -153,6 +236,7 @@ export default function UserAdd() {
             name="username"
             value={formData.username}
             onChange={handleChange}
+            disabled={isEdit}
             sx={{ mb: 3 }}
           />
 
@@ -165,24 +249,26 @@ export default function UserAdd() {
             sx={{ mb: 3 }}
           />
 
-          <TextField
-            fullWidth
-            label="Mật khẩu (*)"
-            name="password"
-            type={showPassword ? 'text' : 'password'}
-            value={formData.password}
-            onChange={handleChange}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={toggleShowPassword} edge="end">
-                    {showPassword ? <IconEyeOff /> : <IconEye />}
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
-            sx={{ mb: 3 }}
-          />
+          {!isEdit && (
+            <TextField
+              fullWidth
+              label="Mật khẩu (*)"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={handleChange}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={toggleShowPassword} edge="end">
+                      {showPassword ? <IconEyeOff /> : <IconEye />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+              sx={{ mb: 3 }}
+            />
+          )}
 
           <TextField
             fullWidth
@@ -212,16 +298,54 @@ export default function UserAdd() {
           </FormControl>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            {isEdit && (
+              <Button
+                variant="outlined"
+                onClick={() => setOpenPasswordDialog(true)}
+                disabled={loading}
+              >
+                Đổi mật khẩu
+              </Button>
+            )}
             <Button
               type="submit"
               variant="contained"
               disabled={loading}
             >
-              Thêm mới
+              {isEdit ? 'Cập nhật' : 'Thêm mới'}
             </Button>
           </Box>
         </form>
       </Paper>
+
+      <Dialog open={openPasswordDialog} onClose={() => setOpenPasswordDialog(false)}>
+        <DialogTitle>Thay đổi mật khẩu</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Mật khẩu mới"
+            type={showNewPassword ? 'text' : 'password'}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            margin="dense"
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={toggleShowNewPassword} edge="end">
+                    {showNewPassword ? <IconEyeOff /> : <IconEye />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenPasswordDialog(false)}>Hủy</Button>
+          <Button onClick={handleChangePassword} variant="contained" disabled={loading}>
+            Xác nhận
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 } 

@@ -126,6 +126,10 @@ const router = createBrowserRouter([
               {
                 path: 'them-moi',
                 element: <UserAdd />
+              },
+              {
+                path: ':id',
+                element: <UserAdd />
               }
             ]
           }
