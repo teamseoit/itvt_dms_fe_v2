@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
@@ -7,18 +7,41 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
-import { IconArrowLeft } from '@tabler/icons-react';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import { IconArrowLeft, IconChevronDown } from '@tabler/icons-react';
 
+import PERMISSION_API from '../../services/permissionService';
 import GROUP_USER_API from '../../services/groupUserService';
 
 export default function GroupUserAdd() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [permissions, setPermissions] = useState([]);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     description: ''
   });
+
+  const fetchPermissions = async () => {
+    try {
+      const response = await PERMISSION_API.getPermissions();
+      if (response.data.success) {
+        setPermissions(response.data.data || []);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách quyền');
+    }
+  };
+
+  useEffect(() => {
+    fetchPermissions();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,17 +51,50 @@ export default function GroupUserAdd() {
     }));
   };
 
+  const handlePermissionChange = (permissionId) => {
+    setSelectedPermissions(prev => {
+      if (prev.includes(permissionId)) {
+        return prev.filter(id => id !== permissionId);
+      }
+      return [...prev, permissionId];
+    });
+  };
+
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      toast.error('Vui lòng nhập tên nhóm');
+      return false;
+    }
+
+    if (!formData.description.trim()) {
+      toast.error('Vui lòng nhập mô tả');
+      return false;
+    }
+
+    if (selectedPermissions.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một quyền');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     try {
       setLoading(true);
-      const response = await GROUP_USER_API.create(formData);
+      const response = await GROUP_USER_API.create({
+        ...formData,
+        permissions: selectedPermissions
+      });
       if (response.data.success) {
-        toast.success('Thêm nhóm người dùng thành công');
+        toast.success('Thêm nhóm quyền thành công');
         navigate('/nhom-quyen');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm nhóm người dùng');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm nhóm quyền');
     } finally {
       setLoading(false);
     }
@@ -47,6 +103,21 @@ export default function GroupUserAdd() {
   const handleBack = () => {
     navigate('/nhom-quyen');
   };
+
+  const groupedPermissions = permissions.reduce((acc, permission) => {
+    if (!permission.permission_parent_id) {
+      acc[permission._id] = {
+        parent: permission,
+        children: []
+      };
+    } else {
+      const parentGroup = acc[permission.permission_parent_id];
+      if (parentGroup) {
+        parentGroup.children.push(permission);
+      }
+    }
+    return acc;
+  }, {});
 
   return (
     <Box>
@@ -67,16 +138,15 @@ export default function GroupUserAdd() {
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Tên nhóm"
+            label="Tên nhóm (*)"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            required
             sx={{ mb: 3 }}
           />
           <TextField
             fullWidth
-            label="Mô tả"
+            label="Mô tả (*)"
             name="description"
             value={formData.description}
             onChange={handleChange}
@@ -84,6 +154,75 @@ export default function GroupUserAdd() {
             rows={4}
             sx={{ mb: 3 }}
           />
+
+          <Typography variant="h4" sx={{ mb: 2 }}>Phân quyền (*)</Typography>
+          <Box 
+            sx={{ 
+              mb: 3,
+              maxHeight: '60vh',
+              overflowY: 'auto',
+              '& .MuiAccordion-root': {
+                '&.Mui-expanded': {
+                  '& .MuiAccordionSummary-root': {
+                    position: 'sticky',
+                    top: 0,
+                    backgroundColor: theme.palette.background.paper,
+                    zIndex: 1
+                  }
+                }
+              }
+            }}
+          >
+            {Object.values(groupedPermissions).map(({ parent, children }) => (
+              <Accordion key={parent._id} sx={{ mb: 1 }}>
+                <AccordionSummary 
+                  expandIcon={<IconChevronDown />}
+                >
+                  <FormControlLabel
+                    label={parent.name}
+                    control={
+                      <Checkbox
+                        checked={children.every(child => selectedPermissions.includes(child._id))}
+                        indeterminate={
+                          children.some(child => selectedPermissions.includes(child._id)) &&
+                          !children.every(child => selectedPermissions.includes(child._id))
+                        }
+                        onChange={() => {
+                          const childIds = children.map(child => child._id);
+                          if (children.every(child => selectedPermissions.includes(child._id))) {
+                            setSelectedPermissions(prev => prev.filter(id => !childIds.includes(id)));
+                          } else {
+                            setSelectedPermissions(prev => [
+                              ...new Set([...prev, ...childIds])
+                            ]);
+                          }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ml: 3 }}>
+                    {children.map(permission => (
+                      <FormControlLabel
+                        key={permission._id}
+                        control={
+                          <Checkbox
+                            checked={selectedPermissions.includes(permission._id)}
+                            onChange={() => handlePermissionChange(permission._id)}
+                          />
+                        }
+                        label={permission.name}
+                      />
+                    ))}
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               variant="contained"
