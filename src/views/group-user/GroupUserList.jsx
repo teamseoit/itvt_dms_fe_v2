@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -21,6 +22,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import GROUP_USER_API from '../../services/groupUserService';
+import ROLE_API from '../../services/roleService';
 import { formatDateTime } from '../../utils/formatDate';
 
 const columns = [
@@ -30,12 +32,19 @@ const columns = [
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
 ];
 
+const PERMISSIONS = {
+  ADD: '66746193cb45907845239f39',
+  UPDATE: '66746193cb45907845239f3a',
+  DELETE: '66746193cb45907845239f4a'
+};
+
 export default function GroupUserList() {
   const theme = useTheme();
   const [page, setPage] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [permissions, setPermissions] = useState([]);
   const [data, setData] = useState({
     groupUsers: [],
     meta: {
@@ -45,6 +54,21 @@ export default function GroupUserList() {
       totalPages: 0
     }
   });
+
+  const fetchPermissions = async () => {
+    try {
+      const response = await ROLE_API.getRoles();
+      if (response.data.success) {
+        setPermissions(response.data.data || []);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách quyền');
+    }
+  };
+  
+  const hasPermission = (permissionId) => {
+    return permissions.some(permission => permission.permission_id === permissionId);
+  };
 
   const fetchGroupUsers = async (pageNumber = 1) => {
     try {
@@ -57,7 +81,7 @@ export default function GroupUserList() {
         });
       }
     } catch (error) {
-      console.error('Error fetching group users:', error);
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách nhóm người dùng');
     } finally {
       setLoading(false);
     }
@@ -65,6 +89,7 @@ export default function GroupUserList() {
 
   useEffect(() => {
     fetchGroupUsers(page + 1);
+    fetchPermissions();
   }, [page]);
 
   const handleChangePage = (event, newPage) => {
@@ -72,11 +97,11 @@ export default function GroupUserList() {
   };
 
   const handleAdd = () => {
-    console.log('Add new group');
+    console.log('Thêm nhóm mới');
   };
 
   const handleEdit = (id) => {
-    console.log('Edit group', id);
+    console.log('Sửa nhóm', id);
   };
 
   const handleDeleteClick = (id) => {
@@ -89,10 +114,11 @@ export default function GroupUserList() {
       setLoading(true);
       const response = await GROUP_USER_API.delete(deleteId);
       if (response.data.success) {
+        toast.success('Xóa nhóm người dùng thành công');
         fetchGroupUsers(page + 1);
       }
     } catch (error) {
-      console.error('Error deleting group user:', error);
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa nhóm người dùng');
     } finally {
       setLoading(false);
       setOpenDialog(false);
@@ -109,19 +135,21 @@ export default function GroupUserList() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h3">Danh sách nhóm quyền</Typography>
-        <Button
-          variant="contained"
-          startIcon={<IconPlus />}
-          onClick={handleAdd}
-          sx={{ backgroundColor: theme.palette.primary.main }}
-        >
-          Thêm mới
-        </Button>
+        {hasPermission(PERMISSIONS.ADD) && (
+          <Button
+            variant="contained"
+            startIcon={<IconPlus />}
+            onClick={handleAdd}
+            sx={{ backgroundColor: theme.palette.primary.main }}
+          >
+            Thêm mới
+          </Button>
+        )}
       </Box>
 
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label="sticky table">
+          <Table stickyHeader aria-label="bảng nhóm quyền">
             <TableHead>
               <TableRow>
                 {columns.map((column) => (
@@ -147,20 +175,24 @@ export default function GroupUserList() {
                 data.groupUsers.map((row) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                     <TableCell>
-                      <IconButton 
-                        color="primary" 
-                        onClick={() => handleEdit(row._id || row.id)}
-                        size="small"
-                      >
-                        <IconEdit size={18} />
-                      </IconButton>
-                      <IconButton 
-                        color="error" 
-                        onClick={() => handleDeleteClick(row._id || row.id)}
-                        size="small"
-                      >
-                        <IconTrash size={18} />
-                      </IconButton>
+                      {hasPermission(PERMISSIONS.UPDATE) && (
+                        <IconButton 
+                          color="primary" 
+                          onClick={() => handleEdit(row._id || row.id)}
+                          size="small"
+                        >
+                          <IconEdit size={18} />
+                        </IconButton>
+                      )}
+                      {hasPermission(PERMISSIONS.DELETE) && (
+                        <IconButton 
+                          color="error" 
+                          onClick={() => handleDeleteClick(row._id || row.id)}
+                          size="small"
+                        >
+                          <IconTrash size={18} />
+                        </IconButton>
+                      )}
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.description}</TableCell>
@@ -185,14 +217,14 @@ export default function GroupUserList() {
       <Dialog
         open={openDialog}
         onClose={handleDeleteCancel}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        aria-labelledby="dialog-title"
+        aria-describedby="dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">
+        <DialogTitle id="dialog-title">
           Xác nhận xóa
         </DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
+          <DialogContentText id="dialog-description">
             Bạn có chắc chắn muốn xóa nhóm quyền này không?
           </DialogContentText>
         </DialogContent>
