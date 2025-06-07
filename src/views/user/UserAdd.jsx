@@ -21,6 +21,11 @@ import { IconArrowLeft, IconEye, IconEyeOff } from '@tabler/icons-react';
 
 import GROUP_USER_API from '../../services/groupUserService';
 import USER_API from '../../services/userService';
+import ROLE_API from '../../services/roleService';
+
+const PERMISSIONS = {
+  CHANGE_PASSWORD: '66746193cb45907845239f37'
+};
 
 export default function UserAdd() {
   const theme = useTheme();
@@ -34,6 +39,7 @@ export default function UserAdd() {
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [permissions, setPermissions] = useState([]);
   const [formData, setFormData] = useState({
     username: '',
     displayName: '',
@@ -41,6 +47,21 @@ export default function UserAdd() {
     email: '',
     groupId: ''
   });
+
+  const fetchPermissions = async () => {
+    try {
+      const response = await ROLE_API.getRoles();
+      if (response.data.success) {
+        setPermissions(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching permissions:', error);
+    }
+  };
+
+  const hasPermission = (permissionId) => {
+    return permissions.some(permission => permission.permission_id === permissionId);
+  };
 
   const fetchGroups = async () => {
     try {
@@ -77,6 +98,7 @@ export default function UserAdd() {
     if (isEdit) {
       fetchUserData();
     }
+    fetchPermissions();
   }, [id]);
 
   const handleChange = (e) => {
@@ -298,7 +320,7 @@ export default function UserAdd() {
           </FormControl>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-            {isEdit && (
+            {isEdit && hasPermission(PERMISSIONS.CHANGE_PASSWORD) && (
               <Button
                 variant="outlined"
                 onClick={() => setOpenPasswordDialog(true)}
