@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -40,6 +41,7 @@ const PERMISSIONS = {
 
 export default function GroupUserList() {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
@@ -97,7 +99,7 @@ export default function GroupUserList() {
   };
 
   const handleAdd = () => {
-    console.log('Thêm nhóm mới');
+    navigate('/nhom-quyen/them-moi');
   };
 
   const handleEdit = (id) => {
