@@ -20,7 +20,7 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
-import { IconPlus, IconEdit, IconTrash, IconEye } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import USER_API from '../../services/userService';
 import ROLE_API from '../../services/roleService';
@@ -28,10 +28,10 @@ import { formatDateTime } from '../../utils/formatDate';
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
-  { id: 'display_name', label: 'Tên hiển thị', minWidth: 130 },
+  { id: 'display_name', label: 'Tên hiển thị', minWidth: 110 },
   { id: 'username', label: 'Tên đăng nhập', minWidth: 130 },
   { id: 'email', label: 'Email', minWidth: 150 },
-  { id: 'group_user_id', label: 'Nhóm quyền', minWidth: 150 },
+  { id: 'group_user_id', label: 'Nhóm quyền', minWidth: 200 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
 ];
 
@@ -66,7 +66,7 @@ export default function UserList() {
         setPermissions(response.data.data || []);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách quyền');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách tài khoản');
     }
   };
   
@@ -101,11 +101,11 @@ export default function UserList() {
   };
 
   const handleAdd = () => {
-    navigate('/nhom-quyen/them-moi');
+    navigate('/tai-khoan/them-moi');
   };
 
   const handleEdit = (id) => {
-    navigate(`/nhom-quyen/${id}`);
+    navigate(`/tai-khoan/${id}`);
   };
 
   const handleDeleteClick = (id) => {
@@ -118,11 +118,11 @@ export default function UserList() {
       setLoading(true);
       const response = await USER_API.delete(deleteId);
       if (response.data.success) {
-        toast.success('Xóa nhóm người dùng thành công');
+        toast.success('Xóa tài khoản thành công');
         fetchGroupUsers(page + 1);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa nhóm người dùng');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa tài khoản');
     } finally {
       setLoading(false);
       setOpenDialog(false);
@@ -153,7 +153,7 @@ export default function UserList() {
 
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label="bảng nhóm quyền">
+          <Table stickyHeader aria-label="bảng tài khoản">
             <TableHead>
               <TableRow>
                 {columns.map((column) => (
@@ -231,7 +231,7 @@ export default function UserList() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="dialog-description">
-            Bạn có chắc chắn muốn xóa nhóm quyền này không?
+            Bạn có chắc chắn muốn xóa tài khoản này không?
           </DialogContentText>
         </DialogContent>
         <DialogActions>

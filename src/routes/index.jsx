@@ -18,6 +18,7 @@ const GroupUserDetail = Loadable(lazy(() => import('views/group-user/GroupUserDe
 
 // User Management
 const UserList = Loadable(lazy(() => import('views/user/UserList')));
+const UserAdd = Loadable(lazy(() => import('views/user/UserAdd')));
 
 function RootLayout() {
   const { isAuthenticated } = useAuth();
@@ -117,7 +118,16 @@ const router = createBrowserRouter([
           },
           {
             path: 'tai-khoan',
-            element: <UserList />
+            children: [
+              {
+                index: true,
+                element: <UserList />
+              },
+              {
+                path: 'them-moi',
+                element: <UserAdd />
+              }
+            ]
           }
         ]
       }
