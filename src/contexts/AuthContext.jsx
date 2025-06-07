@@ -12,22 +12,28 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userInfoStr = localStorage.getItem('userInfo');
-    
-    if (token && userInfoStr) {
-      const tokenExpiry = localStorage.getItem('tokenExpiry');
+    const initializeAuth = () => {
+      const token = localStorage.getItem('token');
+      const userInfoStr = localStorage.getItem('userInfo');
       
-      if (tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
-        setIsAuthenticated(true);
-        setUserInfo(JSON.parse(userInfoStr));
-      } else {
-        handleLogout();
+      if (token && userInfoStr) {
+        const tokenExpiry = localStorage.getItem('tokenExpiry');
+        
+        if (tokenExpiry && new Date().getTime() < parseInt(tokenExpiry)) {
+          setIsAuthenticated(true);
+          setUserInfo(JSON.parse(userInfoStr));
+        } else {
+          handleLogout();
+        }
       }
-    }
+      setIsLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const startVerification = (user_info) => {
@@ -128,7 +134,8 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider 
       value={{ 
         isAuthenticated, 
-        isVerifying, 
+        isVerifying,
+        isLoading,
         userInfo, 
         login, 
         logout: handleLogout, 
@@ -136,7 +143,7 @@ export const AuthProvider = ({ children }) => {
         startVerification 
       }}
     >
-      {children}
+      {!isLoading && children}
     </AuthContext.Provider>
   );
 };

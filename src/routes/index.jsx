@@ -21,7 +21,11 @@ function RootLayout() {
 }
 
 function HomePage() {
-  const { isAuthenticated, isVerifying } = useAuth();
+  const { isAuthenticated, isVerifying, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return null;
+  }
   
   if (isVerifying) {
     return <Navigate to="/xac-thuc-otp" />;
@@ -31,7 +35,11 @@ function HomePage() {
 }
 
 function VerifyPageWrapper() {
-  const { isVerifying } = useAuth();
+  const { isVerifying, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return null;
+  }
   
   if (!isVerifying) {
     return <Navigate to="/" />;
@@ -41,7 +49,11 @@ function VerifyPageWrapper() {
 }
 
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, isVerifying } = useAuth();
+  const { isAuthenticated, isVerifying, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return null;
+  }
   
   if (!isAuthenticated) {
     return <Navigate to="/" />;
