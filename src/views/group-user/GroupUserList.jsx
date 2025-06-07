@@ -1,8 +1,12 @@
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
@@ -13,21 +17,10 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
-
+import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
-const createData = (id, name, description, createdAt, updatedAt) => ({
-  id,
-  name,
-  description,
-  createdAt
-});
-
-const rows = [
-  createData(1, 'Admin Group', 'Administrators', '2024-01-01'),
-  createData(2, 'User Group', 'Regular users', '2024-01-01'),
-  createData(3, 'Manager Group', 'Managers', '2024-01-01'),
-];
+import GROUP_USER_API from '../../services/groupUserService';
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
@@ -39,15 +32,42 @@ const columns = [
 export default function GroupUserList() {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState({
+    groupUsers: [],
+    meta: {
+      page: 1,
+      limit: 10,
+      totalDocs: 0,
+      totalPages: 0
+    }
+  });
+
+  const fetchGroupUsers = async (pageNumber = 1) => {
+    try {
+      setLoading(true);
+      const response = await GROUP_USER_API.getAll({ page: pageNumber, limit: 10 });
+      if (response.data.success) {
+        setData({
+          groupUsers: response.data.data,
+          meta: response.data.meta
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching group users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGroupUsers(page + 1);
+  }, [page]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
   };
 
   const handleAdd = () => {
@@ -58,8 +78,30 @@ export default function GroupUserList() {
     console.log('Edit group', id);
   };
 
-  const handleDelete = (id) => {
-    console.log('Delete group', id);
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setOpenDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setLoading(true);
+      const response = await GROUP_USER_API.delete(deleteId);
+      if (response.data.success) {
+        fetchGroupUsers(page + 1);
+      }
+    } catch (error) {
+      console.error('Error deleting group user:', error);
+    } finally {
+      setLoading(false);
+      setOpenDialog(false);
+      setDeleteId(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setOpenDialog(false);
+    setDeleteId(null);
   };
 
   return (
@@ -94,21 +136,26 @@ export default function GroupUserList() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) => (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    <CircularProgress />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.groupUsers.map((row) => (
+                  <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                     <TableCell>
                       <IconButton 
                         color="primary" 
-                        onClick={() => handleEdit(row.id)}
+                        onClick={() => handleEdit(row._id || row.id)}
                         size="small"
                       >
                         <IconEdit size={18} />
                       </IconButton>
                       <IconButton 
                         color="error" 
-                        onClick={() => handleDelete(row.id)}
+                        onClick={() => handleDeleteClick(row._id || row.id)}
                         size="small"
                       >
                         <IconTrash size={18} />
@@ -116,22 +163,47 @@ export default function GroupUserList() {
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.description}</TableCell>
-                    <TableCell>{row.createdAt}</TableCell>
+                    <TableCell>{new Date(row.createdAt).toLocaleDateString('vi-VN')}</TableCell>
                   </TableRow>
-                ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[10, 25, 100]}
           component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
+          count={data.meta.totalDocs}
+          rowsPerPage={10}
           page={page}
           onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[]}
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
         />
       </Paper>
+
+      <Dialog
+        open={openDialog}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Xác nhận xóa
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Bạn có chắc chắn muốn xóa nhóm quyền này không?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Hủy
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
