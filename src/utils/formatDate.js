@@ -5,10 +5,10 @@ dayjs.extend(utc);
 
 export const formatDateTime = (dateString) => {
   if (!dateString) return '';
-  return dayjs.utc(dateString).format('DD/MM/YYYY HH:mm:ss');
+  return dayjs(dateString).format('DD/MM/YYYY HH:mm:ss');
 };
 
 export const formatDate = (dateString) => {
   if (!dateString) return '';
-  return dayjs.utc(dateString).format('DD/MM/YYYY');
+  return dayjs(dateString).format('DD/MM/YYYY');
 }; 

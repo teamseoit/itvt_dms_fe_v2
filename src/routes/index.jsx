@@ -14,6 +14,7 @@ const Dashboard = Loadable(lazy(() => import('views/dashboard')));
 // Group User
 const GroupUserList = Loadable(lazy(() => import('views/group-user/GroupUserList')));
 const GroupUserAdd = Loadable(lazy(() => import('views/group-user/GroupUserAdd')));
+const GroupUserDetail = Loadable(lazy(() => import('views/group-user/GroupUserDetail')));
 
 function RootLayout() {
   const { isAuthenticated } = useAuth();
@@ -104,6 +105,10 @@ const router = createBrowserRouter([
               {
                 path: 'them-moi',
                 element: <GroupUserAdd />
+              },
+              {
+                path: ':id',
+                element: <GroupUserDetail />
               }
             ]
           }

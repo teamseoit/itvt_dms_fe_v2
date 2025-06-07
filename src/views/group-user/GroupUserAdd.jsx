@@ -159,7 +159,7 @@ export default function GroupUserAdd() {
           <Box 
             sx={{ 
               mb: 3,
-              maxHeight: '60vh',
+              maxHeight: '40vh',
               overflowY: 'auto',
               '& .MuiAccordion-root': {
                 '&.Mui-expanded': {
@@ -177,6 +177,13 @@ export default function GroupUserAdd() {
               <Accordion key={parent._id} sx={{ mb: 1 }}>
                 <AccordionSummary 
                   expandIcon={<IconChevronDown />}
+                  sx={{
+                    minHeight: '48px !important',
+                    height: '48px',
+                    '& .MuiAccordionSummary-content': {
+                      margin: '0 !important',
+                    }
+                  }}
                 >
                   <FormControlLabel
                     label={parent.name}
