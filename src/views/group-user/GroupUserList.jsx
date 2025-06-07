@@ -21,6 +21,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import GROUP_USER_API from '../../services/groupUserService';
+import { formatDateTime } from '../../utils/formatDate';
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
@@ -163,7 +164,7 @@ export default function GroupUserList() {
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.description}</TableCell>
-                    <TableCell>{new Date(row.createdAt).toLocaleDateString('vi-VN')}</TableCell>
+                    <TableCell>{formatDateTime(row.createdAt)}</TableCell>
                   </TableRow>
                 ))
               )}
