@@ -201,57 +201,65 @@ export default function CustomerAdd() {
                 sx={{ mt: 2 }}
               />
               <TextField fullWidth label="Địa chỉ" name="address" value={formData.address} onChange={handleChange} sx={{ mt: 2 }} />
-              <Typography variant="body1" gutterBottom>Ảnh CMND mặt trước</Typography>
-              <FileUploader handleChange={(file) => handleFileChange(file, 'identityCardFrontImage')} name="front" types={fileTypes} />
-              {formData.identityCardFrontImagePreview ? (
-                <Box mt={2}>
-                  <Typography variant="body2">Xem trước mặt trước:</Typography>
-                  <img
-                    src={formData.identityCardFrontImagePreview}
-                    alt="Mặt trước CMND"
-                    style={{ width: '200px', borderRadius: 8, marginTop: 8 }}
-                  />
-                </Box>
-              ) : (
-                typeof formData.identityCardFrontImage === 'string' &&
-                formData.identityCardFrontImage !== '' && (
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
                   <Box mt={2}>
-                    <Typography variant="body2">Xem hình mặt trước:</Typography>
-                    <img
-                      src={convertToFullUrl(formData.identityCardFrontImage)}
-                      alt="Mặt trước CMND"
-                      style={{ width: '200px', borderRadius: 8, marginTop: 8 }}
-                    />
+                    <Typography variant="body1" gutterBottom>Ảnh CMND mặt trước</Typography>
+                    <FileUploader handleChange={(file) => handleFileChange(file, 'identityCardFrontImage')} name="front" types={fileTypes} />
+                    {formData.identityCardFrontImagePreview ? (
+                      <Box mt={2}>
+                        <Typography variant="body2">Xem trước mặt trước:</Typography>
+                        <img
+                          src={formData.identityCardFrontImagePreview}
+                          alt="Mặt trước CMND"
+                          style={{ width: '330px', borderRadius: 8, marginTop: 8 }}
+                        />
+                      </Box>
+                    ) : (
+                      typeof formData.identityCardFrontImage === 'string' &&
+                      formData.identityCardFrontImage !== '' && (
+                        <Box mt={2}>
+                          <Typography variant="body2">Xem hình mặt trước:</Typography>
+                          <img
+                            src={convertToFullUrl(formData.identityCardFrontImage)}
+                            alt="Mặt trước CMND"
+                            style={{ width: '330px', borderRadius: 8, marginTop: 8 }}
+                          />
+                        </Box>
+                      )
+                    )}
                   </Box>
-                )
-              )}
-              <Typography variant="body1" gutterBottom mt={2}>Ảnh CMND mặt sau</Typography>
-              <FileUploader handleChange={(file) => handleFileChange(file, 'identityCardBackImage')} name="back" types={fileTypes} />
-              {formData.identityCardBackImagePreview ? (
-                <Box mt={2}>
-                  <Typography variant="body2">Xem trước mặt sau:</Typography>
-                  <img
-                    src={formData.identityCardBackImagePreview}
-                    alt="Mặt sau CMND"
-                    style={{ width: '200px', borderRadius: 8, marginTop: 8 }}
-                  />
-                </Box>
-              ) : (
-                typeof formData.identityCardBackImage === 'string' &&
-                formData.identityCardBackImage !== '' && (
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <Box mt={2}>
-                    <Typography variant="body2">Xem hình mặt sau:</Typography>
-                    <img
-                      src={convertToFullUrl(formData.identityCardBackImage)}
-                      alt="Mặt sau CMND"
-                      style={{ width: '200px', borderRadius: 8, marginTop: 8 }}
-                    />
+                    <Typography variant="body1" gutterBottom mt={2}>Ảnh CMND mặt sau</Typography>
+                    <FileUploader handleChange={(file) => handleFileChange(file, 'identityCardBackImage')} name="back" types={fileTypes} />
+                    {formData.identityCardBackImagePreview ? (
+                      <Box mt={2}>
+                        <Typography variant="body2">Xem trước mặt sau:</Typography>
+                        <img
+                          src={formData.identityCardBackImagePreview}
+                          alt="Mặt sau CMND"
+                          style={{ width: '330px', borderRadius: 8, marginTop: 8 }}
+                        />
+                      </Box>
+                    ) : (
+                      typeof formData.identityCardBackImage === 'string' &&
+                      formData.identityCardBackImage !== '' && (
+                        <Box mt={2}>
+                          <Typography variant="body2">Xem hình mặt sau:</Typography>
+                          <img
+                            src={convertToFullUrl(formData.identityCardBackImage)}
+                            alt="Mặt sau CMND"
+                            style={{ width: '330px', borderRadius: 8, marginTop: 8 }}
+                          />
+                        </Box>
+                      )
+                    )}
                   </Box>
-                )
-              )}
-            </Grid>
+                </Grid>
+              </Grid>
 
-            <Grid item xs={12} sm={12}>
               <FormControlLabel
                 control={<Switch checked={formData.typeCustomer} onChange={handleChange} name="typeCustomer" />}
                 label="Khách hàng doanh nghiệp"
@@ -259,7 +267,7 @@ export default function CustomerAdd() {
               />
 
               {formData.typeCustomer && (
-                <Box mt={2}>
+                <Grid item xs={12} sm={12}>
                   <TextField fullWidth label="Tên công ty" name="companyName" value={formData.companyName} onChange={handleChange} sx={{ mt: 2 }} />
                   <TextField
                     fullWidth
@@ -294,7 +302,7 @@ export default function CustomerAdd() {
                     sx={{ mt: 2 }}
                   />
                   <TextField fullWidth label="Email VAT" name="vatEmail" value={formData.vatEmail} onChange={handleChange} sx={{ mt: 2 }} />
-                </Box>
+                </Grid>
               )}
             </Grid>
           </Grid>
