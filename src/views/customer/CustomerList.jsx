@@ -201,7 +201,8 @@ export default function CustomerList() {
       const response = await CUSTOMER_API.delete(deleteId);
       if (response.data.success) {
         toast.success('Xóa khách hàng thành công');
-        fetchCustomers(page + 1);
+        await fetchCustomers(page + 1);
+        await fetchCounts();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa khách hàng');
@@ -239,7 +240,6 @@ export default function CustomerList() {
             variant={typeFilter === null ? 'contained' : 'outlined'}
             size="small"
             onClick={() => { setPage(0); setTypeFilter(null); }}
-            boxShadow='none'
             sx={{
               borderRadius: '5px',
               textTransform: 'none',
@@ -294,7 +294,7 @@ export default function CustomerList() {
       </Box>
 
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 440 }}>
+        <TableContainer>
           <Table stickyHeader aria-label="bảng khách hàng">
             <TableHead>
               <TableRow>
@@ -342,7 +342,7 @@ export default function CustomerList() {
                     </TableCell>
                     <TableCell>{row.fullName}<br/>{maskPhoneNumber(row.phoneNumber)}</TableCell>
                     <TableCell>{row.email}</TableCell>
-                    <TableCell>{row.gender === 0 ? 'Nữ' : 'Nam'}</TableCell>
+                    <TableCell>{row.gender === 0 ? 'Nam' : 'Nữ'}</TableCell>
                     <TableCell
                       sx={{
                         maxWidth: 220,

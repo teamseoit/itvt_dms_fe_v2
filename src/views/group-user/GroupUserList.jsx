@@ -150,7 +150,7 @@ export default function GroupUserList() {
       </Box>
 
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 440 }}>
+        <TableContainer>
           <Table stickyHeader aria-label="bảng nhóm quyền">
             <TableHead>
               <TableRow>

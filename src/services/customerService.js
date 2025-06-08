@@ -10,7 +10,11 @@ const CUSTOMER_API = {
   },
 
   create: (data) => {
-    return axios.post('/customer', data);
+    return axios.post('/customer', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 
   update: (id, data) => {

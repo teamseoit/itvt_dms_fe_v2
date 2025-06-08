@@ -152,7 +152,7 @@ export default function UserList() {
       </Box>
 
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 440 }}>
+        <TableContainer>
           <Table stickyHeader aria-label="bảng tài khoản">
             <TableHead>
               <TableRow>
