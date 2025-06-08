@@ -24,6 +24,9 @@ const UserAdd = Loadable(lazy(() => import('views/user/UserAdd')));
 const CustomerList = Loadable(lazy(() => import('views/customer/CustomerList')));
 const CustomerAdd = Loadable(lazy(() => import('views/customer/CustomerAdd')));
 
+// Action Log Management
+const ActionLogList = Loadable(lazy(() => import('views/action-log/ActionLogList')));
+
 function RootLayout() {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <MainLayout /> : <MinimalLayout />;
@@ -103,6 +106,10 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
         children: [
+          {
+            path: 'lich-su-thao-tac',
+            element: <ActionLogList />
+          },
           {
             path: 'nhom-quyen',
             children: [

@@ -74,7 +74,7 @@ export default function UserList() {
     return permissions.some(permission => permission.permission_id === permissionId);
   };
 
-  const fetchGroupUsers = async (pageNumber = 1) => {
+  const fetchUserData = async (pageNumber = 1) => {
     try {
       setLoading(true);
       const response = await USER_API.getAll({ page: pageNumber, limit: 10 });
@@ -92,7 +92,7 @@ export default function UserList() {
   };
 
   useEffect(() => {
-    fetchGroupUsers(page + 1);
+    fetchUserData(page + 1);
     fetchPermissions();
   }, [page]);
 
@@ -119,7 +119,7 @@ export default function UserList() {
       const response = await USER_API.delete(deleteId);
       if (response.data.success) {
         toast.success('Xóa tài khoản thành công');
-        fetchGroupUsers(page + 1);
+        fetchUserData(page + 1);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa tài khoản');
