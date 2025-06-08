@@ -18,7 +18,11 @@ const CUSTOMER_API = {
   },
 
   update: (id, data) => {
-    return axios.put(`/customer/${id}`, data);
+    return axios.put(`/customer/${id}`, data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 
   delete: (id) => {

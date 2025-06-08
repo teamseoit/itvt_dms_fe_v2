@@ -22,3 +22,9 @@ export const maskPhoneNumber = (phone) => {
   const visible = phoneStr.slice(0, 7);
   return visible.replace(/(\d{4})(\d{2})/, '$1 $2') + '****';
 };
+
+export const convertToFullUrl = (filePath) => {
+  if (!filePath) return '';
+  const path = filePath.replace(/\\/g, '/');
+  return `${import.meta.env.VITE_API_UPLOAD}/${path}`;
+};

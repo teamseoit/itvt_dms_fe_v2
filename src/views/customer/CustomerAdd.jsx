@@ -14,6 +14,8 @@ import {
 import CUSTOMER_API from '../../services/customerService';
 import ROLE_API from '../../services/roleService';
 
+import { convertToFullUrl } from '../../utils/formatConstants';
+
 const genderOptions = [
   { value: 0, label: 'Nam' },
   { value: 1, label: 'Nữ' },
@@ -62,7 +64,15 @@ export default function CustomerAdd() {
   const fetchCustomerData = async () => {
     try {
       const res = await CUSTOMER_API.getById(id);
-      if (res.data.success) setFormData(prev => ({ ...prev, ...res.data.data }));
+      if (res.data.success) {
+        const data = res.data.data;
+        setFormData(prev => ({
+          ...prev,
+          ...data,
+          identityCardFrontImagePreview: data.identityCardFrontImage ? convertToFullUrl(data.identityCardFrontImage) : '',
+          identityCardBackImagePreview: data.identityCardBackImage ? convertToFullUrl(data.identityCardBackImage) : '',
+        }));
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Lỗi lấy dữ liệu');
       navigate('/khach-hang');
@@ -193,7 +203,7 @@ export default function CustomerAdd() {
               <TextField fullWidth label="Địa chỉ" name="address" value={formData.address} onChange={handleChange} sx={{ mt: 2 }} />
               <Typography variant="body1" gutterBottom>Ảnh CMND mặt trước</Typography>
               <FileUploader handleChange={(file) => handleFileChange(file, 'identityCardFrontImage')} name="front" types={fileTypes} />
-              {formData.identityCardFrontImagePreview && (
+              {formData.identityCardFrontImagePreview ? (
                 <Box mt={2}>
                   <Typography variant="body2">Xem trước mặt trước:</Typography>
                   <img
@@ -202,10 +212,22 @@ export default function CustomerAdd() {
                     style={{ width: '200px', borderRadius: 8, marginTop: 8 }}
                   />
                 </Box>
+              ) : (
+                typeof formData.identityCardFrontImage === 'string' &&
+                formData.identityCardFrontImage !== '' && (
+                  <Box mt={2}>
+                    <Typography variant="body2">Xem hình mặt trước:</Typography>
+                    <img
+                      src={convertToFullUrl(formData.identityCardFrontImage)}
+                      alt="Mặt trước CMND"
+                      style={{ width: '200px', borderRadius: 8, marginTop: 8 }}
+                    />
+                  </Box>
+                )
               )}
               <Typography variant="body1" gutterBottom mt={2}>Ảnh CMND mặt sau</Typography>
               <FileUploader handleChange={(file) => handleFileChange(file, 'identityCardBackImage')} name="back" types={fileTypes} />
-              {formData.identityCardBackImagePreview && (
+              {formData.identityCardBackImagePreview ? (
                 <Box mt={2}>
                   <Typography variant="body2">Xem trước mặt sau:</Typography>
                   <img
@@ -214,6 +236,18 @@ export default function CustomerAdd() {
                     style={{ width: '200px', borderRadius: 8, marginTop: 8 }}
                   />
                 </Box>
+              ) : (
+                typeof formData.identityCardBackImage === 'string' &&
+                formData.identityCardBackImage !== '' && (
+                  <Box mt={2}>
+                    <Typography variant="body2">Xem hình mặt sau:</Typography>
+                    <img
+                      src={convertToFullUrl(formData.identityCardBackImage)}
+                      alt="Mặt sau CMND"
+                      style={{ width: '200px', borderRadius: 8, marginTop: 8 }}
+                    />
+                  </Box>
+                )
               )}
             </Grid>
 
