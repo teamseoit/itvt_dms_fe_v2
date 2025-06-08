@@ -24,7 +24,7 @@ import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import GROUP_USER_API from '../../services/groupUserService';
 import ROLE_API from '../../services/roleService';
-import { formatDateTime } from '../../utils/formatDate';
+import { formatDateTime } from '../../utils/formatConstants';
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },

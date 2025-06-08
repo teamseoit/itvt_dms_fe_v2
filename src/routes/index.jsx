@@ -20,6 +20,10 @@ const GroupUserDetail = Loadable(lazy(() => import('views/group-user/GroupUserDe
 const UserList = Loadable(lazy(() => import('views/user/UserList')));
 const UserAdd = Loadable(lazy(() => import('views/user/UserAdd')));
 
+// Customer Management
+const CustomerList = Loadable(lazy(() => import('views/customer/CustomerList')));
+const CustomerAdd = Loadable(lazy(() => import('views/customer/CustomerAdd')));
+
 function RootLayout() {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <MainLayout /> : <MinimalLayout />;
@@ -130,6 +134,23 @@ const router = createBrowserRouter([
               {
                 path: ':id',
                 element: <UserAdd />
+              }
+            ]
+          },
+          {
+            path: 'khach-hang',
+            children: [
+              {
+                index: true,
+                element: <CustomerList />
+              },
+              {
+                path: 'them-moi',
+                element: <CustomerAdd />
+              },
+              {
+                path: ':id',
+                element: <CustomerAdd />
               }
             ]
           }
