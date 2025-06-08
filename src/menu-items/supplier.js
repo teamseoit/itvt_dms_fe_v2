@@ -14,23 +14,23 @@ const supplier = {
       children: [
         {
           id: 'service',
-          title: 'Cung cấp dịch vụ',
+          title: 'Dịch vụ',
           type: 'item',
-          url: '/ncc/cung-cap-dich-vu',
+          url: '/ncc/dich-vu',
           breadcrumbs: true
         },
         {
           id: 'server',
-          title: 'Cung cấp Server',
+          title: 'Server',
           type: 'item',
-          url: '/ncc/cung-cap-server',
+          url: '/ncc/server',
           breadcrumbs: true
         },
         {
           id: 'network',
-          title: 'Cung cấp mạng', 
+          title: 'Mạng', 
           type: 'item',
-          url: '/ncc/cung-cap-mang',
+          url: '/ncc/mang',
           breadcrumbs: true
         }
       ]

@@ -28,3 +28,7 @@ export const convertToFullUrl = (filePath) => {
   const path = filePath.replace(/\\/g, '/');
   return `${import.meta.env.VITE_API_UPLOAD}/${path}`;
 };
+
+export const extractDomain = (url) => {
+  return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+}

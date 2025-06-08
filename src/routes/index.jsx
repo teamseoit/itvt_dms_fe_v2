@@ -27,6 +27,10 @@ const CustomerAdd = Loadable(lazy(() => import('views/customer/CustomerAdd')));
 // Action Log Management
 const ActionLogList = Loadable(lazy(() => import('views/action-log/ActionLogList')));
 
+// Supplier Management
+const ServiceSupplier = Loadable(lazy(() => import('views/supplier/service/ServiceSupplier')));
+const ServiceSupplierAdd = Loadable(lazy(() => import('views/supplier/service/ServiceSupplierAdd')));
+
 function RootLayout() {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <MainLayout /> : <MinimalLayout />;
@@ -158,6 +162,23 @@ const router = createBrowserRouter([
               {
                 path: ':id',
                 element: <CustomerAdd />
+              }
+            ]
+          },
+          {
+            path: 'ncc',
+            children: [
+              {
+                path: 'dich-vu',
+                element: <ServiceSupplier />
+              },
+              {
+                path: 'dich-vu/them-moi',
+                element: <ServiceSupplierAdd />
+              },
+              {
+                path: 'dich-vu/:id',
+                element: <ServiceSupplierAdd />
               }
             ]
           }
