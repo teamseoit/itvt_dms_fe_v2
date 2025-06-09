@@ -30,6 +30,8 @@ const ActionLogList = Loadable(lazy(() => import('views/action-log/ActionLogList
 // Supplier Management
 const ServiceSupplierList = Loadable(lazy(() => import('views/supplier/service/ServiceSupplierList')));
 const ServiceSupplierAdd = Loadable(lazy(() => import('views/supplier/service/ServiceSupplierAdd')));
+const ServerSupplierList = Loadable(lazy(() => import('views/supplier/server/ServerSupplierList')));
+const ServerSupplierAdd = Loadable(lazy(() => import('views/supplier/server/ServerSupplierAdd')));
 
 function RootLayout() {
   const { isAuthenticated } = useAuth();
@@ -179,6 +181,18 @@ const router = createBrowserRouter([
               {
                 path: 'dich-vu/:id',
                 element: <ServiceSupplierAdd />
+              },
+              {
+                path: 'server',
+                element: <ServerSupplierList />
+              },
+              {
+                path: 'server/them-moi',
+                element: <ServerSupplierAdd />
+              },
+              {
+                path: 'server/:id',
+                element: <ServerSupplierAdd />
               }
             ]
           }

@@ -24,7 +24,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 
-import SERVICE_SUPPLIER_API from '../../../services/serviceSupplierService';
+import SERVER_SUPPLIER_API from '../../../services/serverSupplierService';
 import ROLE_API from '../../../services/roleService';
 import { formatDateTime, extractDomain, maskPhoneNumber } from '../../../utils/formatConstants';
 
@@ -39,12 +39,12 @@ const columns = [
 ];
 
 const PERMISSIONS = {
-  ADD: '667463d04bede188dfb46d76',
-  UPDATE: '667463d04bede188dfb46d77',
-  DELETE: '667463d04bede188dfb46d78'
+  ADD: '667463d04bede188dfb46a81',
+  UPDATE: '667463d04bede188dfb46e81',
+  DELETE: '667463d04bede188dfb46f81'
 };
 
-export default function ServiceSupplierList() {
+export default function ServerSupplierList() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
@@ -53,7 +53,7 @@ export default function ServiceSupplierList() {
   const [loading, setLoading] = useState(false);
   const [permissions, setPermissions] = useState([]);
   const [data, setData] = useState({
-    serviceSuppliers: [],
+    serverSuppliers: [],
     meta: {
       page: 1,
       limit: 10,
@@ -77,25 +77,25 @@ export default function ServiceSupplierList() {
     return permissions.some(permission => permission.permission_id === permissionId);
   };
 
-  const fetchServiceSuppliers = async (pageNumber = 1) => {
+  const fetchServerSuppliers = async (pageNumber = 1) => {
     try {
       setLoading(true);
-      const response = await SERVICE_SUPPLIER_API.getAll({ page: pageNumber, limit: 10 });
+      const response = await SERVER_SUPPLIER_API.getAll({ page: pageNumber, limit: 10 });
       if (response.data.success) {
         setData({
-          serviceSuppliers: response.data.data,
+          serverSuppliers: response.data.data,
           meta: response.data.meta
         });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách nhà cung cấp dịch vụ');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách nhà cung cấp server');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchServiceSuppliers(page + 1);
+    fetchServerSuppliers(page + 1);
     fetchPermissions();
   }, [page]);
 
@@ -104,11 +104,11 @@ export default function ServiceSupplierList() {
   };
 
   const handleAdd = () => {
-    navigate('/ncc/dich-vu/them-moi');
+    navigate('/ncc/server/them-moi');
   };
 
   const handleEdit = (id) => {
-    navigate(`/ncc/dich-vu/${id}`);
+    navigate(`/ncc/server/${id}`);
   };
 
   const handleDeleteClick = (id) => {
@@ -119,13 +119,13 @@ export default function ServiceSupplierList() {
   const handleDeleteConfirm = async () => {
     try {
       setLoading(true);
-      const response = await SERVICE_SUPPLIER_API.delete(deleteId);
+      const response = await SERVER_SUPPLIER_API.delete(deleteId);
       if (response.data.success) {
-        toast.success('Xóa nhà cung cấp dịch vụ thành công');
-        fetchServiceSuppliers(page + 1);
+        toast.success('Xóa nhà cung cấp server thành công');
+        fetchServerSuppliers(page + 1);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa nhà cung cấp dịch vụ');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa nhà cung cấp server');
     } finally {
       setLoading(false);
       setOpenDialog(false);
@@ -141,7 +141,7 @@ export default function ServiceSupplierList() {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h3">Danh sách nhà cung cấp dịch vụ</Typography>
+        <Typography variant="h3">Danh sách nhà cung cấp server</Typography>
         {hasPermission(PERMISSIONS.ADD) && (
           <Button
             variant="contained"
@@ -156,7 +156,7 @@ export default function ServiceSupplierList() {
 
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer>
-          <Table stickyHeader aria-label="bảng nhóm quyền">
+          <Table stickyHeader aria-label="bảng server">
             <TableHead>
               <TableRow>
                 {columns.map((column) => (
@@ -179,7 +179,7 @@ export default function ServiceSupplierList() {
                   </TableCell>
                 </TableRow>
               ) : (
-                data.serviceSuppliers.map((row) => (
+                data.serverSuppliers.map((row) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                     <TableCell>
                       {hasPermission(PERMISSIONS.UPDATE) && (
