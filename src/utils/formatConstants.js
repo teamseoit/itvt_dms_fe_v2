@@ -32,3 +32,19 @@ export const convertToFullUrl = (filePath) => {
 export const extractDomain = (url) => {
   return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
 }
+
+export const formatPrice = (price) => {
+  return price.toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  });
+}
+
+export const formatCurrencyInput = (value) => {
+  const numericValue = value.replace(/\D/g, '');
+  return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
+export const parseCurrency = (formatted) => {
+  return parseInt(formatted.replace(/\./g, '')) || 0;
+};
