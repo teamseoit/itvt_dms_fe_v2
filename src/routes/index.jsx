@@ -28,7 +28,7 @@ const CustomerAdd = Loadable(lazy(() => import('views/customer/CustomerAdd')));
 const ActionLogList = Loadable(lazy(() => import('views/action-log/ActionLogList')));
 
 // Supplier Management
-const ServiceSupplier = Loadable(lazy(() => import('views/supplier/service/ServiceSupplier')));
+const ServiceSupplierList = Loadable(lazy(() => import('views/supplier/service/ServiceSupplierList')));
 const ServiceSupplierAdd = Loadable(lazy(() => import('views/supplier/service/ServiceSupplierAdd')));
 
 function RootLayout() {
@@ -170,7 +170,7 @@ const router = createBrowserRouter([
             children: [
               {
                 path: 'dich-vu',
-                element: <ServiceSupplier />
+                element: <ServiceSupplierList />
               },
               {
                 path: 'dich-vu/them-moi',

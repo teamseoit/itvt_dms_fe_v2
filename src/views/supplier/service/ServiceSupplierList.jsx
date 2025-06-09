@@ -26,7 +26,7 @@ import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import SERVICE_SUPPLIER_API from '../../../services/serviceSupplierService';
 import ROLE_API from '../../../services/roleService';
-import { formatDateTime, extractDomain } from '../../../utils/formatConstants';
+import { formatDateTime, extractDomain, maskPhoneNumber } from '../../../utils/formatConstants';
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
@@ -44,7 +44,7 @@ const PERMISSIONS = {
   DELETE: '667463d04bede188dfb46d78'
 };
 
-export default function ServiceSupplier() {
+export default function ServiceSupplierList() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
@@ -203,7 +203,7 @@ export default function ServiceSupplier() {
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.company}</TableCell>
-                    <TableCell>{row.phone}</TableCell>
+                    <TableCell>{maskPhoneNumber(row.phone)}</TableCell>
                     <TableCell>
                       <Link to={row.website} target="_blank" rel="noopener noreferrer">
                         {extractDomain(row.website)}
