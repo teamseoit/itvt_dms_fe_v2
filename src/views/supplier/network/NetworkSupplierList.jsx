@@ -24,7 +24,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 
-import SERVER_SUPPLIER_API from '../../../services/serverSupplierService';
+import NETWORK_SUPPLIER_API from '../../../services/networkSupplierService';
 import ROLE_API from '../../../services/roleService';
 import { formatDateTime, extractDomain, maskPhoneNumber } from '../../../utils/formatConstants';
 
@@ -39,12 +39,12 @@ const columns = [
 ];
 
 const PERMISSIONS = {
-  ADD: '667463d04bede188dfb46a81',
-  UPDATE: '667463d04bede188dfb46e81',
-  DELETE: '667463d04bede188dfb46f81'
+  ADD: '667463d04bede188dfb46d79',
+  UPDATE: '667463d04bede188dfb46d80',
+  DELETE: '667463d04bede188dfb46d81'
 };
 
-export default function ServerSupplierList() {
+export default function NetworkSupplierList() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
@@ -53,7 +53,7 @@ export default function ServerSupplierList() {
   const [loading, setLoading] = useState(false);
   const [permissions, setPermissions] = useState([]);
   const [data, setData] = useState({
-    serverSuppliers: [],
+    networkSuppliers: [],
     meta: {
       page: 1,
       limit: 10,
@@ -77,25 +77,25 @@ export default function ServerSupplierList() {
     return permissions.some(permission => permission.permission_id === permissionId);
   };
 
-  const fetchServerSuppliers = async (pageNumber = 1) => {
+  const fetchNetworkSuppliers = async (pageNumber = 1) => {
     try {
       setLoading(true);
-      const response = await SERVER_SUPPLIER_API.getAll({ page: pageNumber, limit: 10 });
+      const response = await NETWORK_SUPPLIER_API.getAll({ page: pageNumber, limit: 10 });
       if (response.data.success) {
         setData({
-          serverSuppliers: response.data.data,
+          networkSuppliers: response.data.data,
           meta: response.data.meta
         });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách nhà cung cấp server');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách nhà cung cấp mạng');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchServerSuppliers(page + 1);
+    fetchNetworkSuppliers(page + 1);
     fetchPermissions();
   }, [page]);
 
@@ -104,11 +104,11 @@ export default function ServerSupplierList() {
   };
 
   const handleAdd = () => {
-    navigate('/ncc/server/them-moi');
+    navigate('/ncc/mang/them-moi');
   };
 
   const handleEdit = (id) => {
-    navigate(`/ncc/server/${id}`);
+    navigate(`/ncc/mang/${id}`);
   };
 
   const handleDeleteClick = (id) => {
@@ -119,13 +119,13 @@ export default function ServerSupplierList() {
   const handleDeleteConfirm = async () => {
     try {
       setLoading(true);
-      const response = await SERVER_SUPPLIER_API.delete(deleteId);
+      const response = await NETWORK_SUPPLIER_API.delete(deleteId);
       if (response.data.success) {
-        toast.success('Xóa nhà cung cấp server thành công');
-        fetchServerSuppliers(page + 1);
+        toast.success('Xóa nhà cung cấp mạng thành công');
+        fetchNetworkSuppliers(page + 1);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa nhà cung cấp server');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa nhà cung cấp mạng');
     } finally {
       setLoading(false);
       setOpenDialog(false);
@@ -141,7 +141,7 @@ export default function ServerSupplierList() {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h3">Danh sách nhà cung cấp server</Typography>
+        <Typography variant="h3">Danh sách nhà cung cấp mạng</Typography>
         {hasPermission(PERMISSIONS.ADD) && (
           <Button
             variant="contained"
@@ -156,7 +156,7 @@ export default function ServerSupplierList() {
 
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer>
-          <Table stickyHeader aria-label="bảng server">
+          <Table stickyHeader aria-label="bảng mạng">
             <TableHead>
               <TableRow>
                 {columns.map((column) => (
@@ -179,7 +179,7 @@ export default function ServerSupplierList() {
                   </TableCell>
                 </TableRow>
               ) : (
-                data.serverSuppliers.map((row) => (
+                data.networkSuppliers.map((row) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                     <TableCell>
                       {hasPermission(PERMISSIONS.UPDATE) && (
@@ -248,7 +248,7 @@ export default function ServerSupplierList() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="dialog-description">
-            Bạn có chắc chắn muốn xóa nhà cung cấp dịch vụ server này không?
+            Bạn có chắc chắn muốn xóa nhà cung cấp dịch vụ mạng này không?
           </DialogContentText>
         </DialogContent>
         <DialogActions>

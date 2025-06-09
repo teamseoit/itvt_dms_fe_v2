@@ -248,7 +248,7 @@ export default function ServiceSupplierList() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="dialog-description">
-            Bạn có chắc chắn muốn xóa nhóm quyền này không?
+            Bạn có chắc chắn muốn xóa nhà cung cấp dịch vụ này không?
           </DialogContentText>
         </DialogContent>
         <DialogActions>

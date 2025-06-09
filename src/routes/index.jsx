@@ -32,6 +32,8 @@ const ServiceSupplierList = Loadable(lazy(() => import('views/supplier/service/S
 const ServiceSupplierAdd = Loadable(lazy(() => import('views/supplier/service/ServiceSupplierAdd')));
 const ServerSupplierList = Loadable(lazy(() => import('views/supplier/server/ServerSupplierList')));
 const ServerSupplierAdd = Loadable(lazy(() => import('views/supplier/server/ServerSupplierAdd')));
+const NetworkSupplierList = Loadable(lazy(() => import('views/supplier/network/NetworkSupplierList')));
+const NetworkSupplierAdd = Loadable(lazy(() => import('views/supplier/network/NetworkSupplierAdd')));
 
 function RootLayout() {
   const { isAuthenticated } = useAuth();
@@ -193,6 +195,18 @@ const router = createBrowserRouter([
               {
                 path: 'server/:id',
                 element: <ServerSupplierAdd />
+              },
+              {
+                path: 'mang',
+                element: <NetworkSupplierList />
+              },
+              {
+                path: 'mang/them-moi',
+                element: <NetworkSupplierAdd />
+              },
+              {
+                path: 'mang/:id',
+                element: <NetworkSupplierAdd />
               }
             ]
           }
