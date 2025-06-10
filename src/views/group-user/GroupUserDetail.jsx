@@ -213,7 +213,7 @@ export default function GroupUserDetail() {
         </Box>
         </Paper>
       ) : (
-        <Typography variant="h6">Bạn không có quyền cập nhật nhóm quyền</Typography>
+        <Typography variant="h4">Bạn không có quyền cập nhật nhóm quyền!</Typography>
       )}
     </Box>
   );

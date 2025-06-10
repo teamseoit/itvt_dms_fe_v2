@@ -374,7 +374,7 @@ export default function CustomerList() {
           </Paper>
         </>
       ) : (
-        <Typography variant="h6">Bạn không có quyền xem danh sách khách hàng</Typography>
+        <Typography variant="h4">Bạn không có quyền xem danh sách khách hàng!</Typography>
       )}
 
       <Dialog

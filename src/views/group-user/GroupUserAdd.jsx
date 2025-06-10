@@ -248,7 +248,7 @@ export default function GroupUserAdd() {
           </form>
         </Paper>
       ) : (
-        <Typography variant="h6">Bạn không có quyền thêm nhóm quyền</Typography>
+        <Typography variant="h4">Bạn không có quyền thêm nhóm quyền!</Typography>
       )}
     </Box>
   );

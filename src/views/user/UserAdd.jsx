@@ -258,10 +258,10 @@ export default function UserAdd() {
           <Typography variant="h3">{isEdit ? 'Cập nhật tài khoản' : 'Thêm tài khoản mới'}</Typography>
         </Box>
         <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" color="error">
+          <Typography variant="h4" color="error">
             {isEdit 
-              ? 'Bạn không có quyền cập nhật tài khoản' 
-              : 'Bạn không có quyền thêm tài khoản mới'
+              ? 'Bạn không có quyền cập nhật tài khoản!' 
+              : 'Bạn không có quyền thêm tài khoản mới!'
             }
           </Typography>
         </Paper>

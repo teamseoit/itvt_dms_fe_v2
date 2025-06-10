@@ -201,7 +201,7 @@ export default function UserList() {
         />
       </Paper>
       ) : (
-        <Typography variant="h6">Bạn không có quyền xem danh sách tài khoản</Typography>
+        <Typography variant="h4">Bạn không có quyền xem danh sách tài khoản!</Typography>
       )}
 
       <Dialog

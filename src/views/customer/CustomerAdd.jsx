@@ -155,10 +155,10 @@ export default function CustomerAdd() {
           <Typography variant="h4" ml={2}>{isEdit ? 'Cập nhật khách hàng' : 'Thêm khách hàng mới'}</Typography>
         </Box>
         <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" color="error">
+          <Typography variant="h4" color="error">
             {isEdit 
-              ? 'Bạn không có quyền cập nhật khách hàng' 
-              : 'Bạn không có quyền thêm khách hàng mới'
+              ? 'Bạn không có quyền cập nhật khách hàng!' 
+              : 'Bạn không có quyền thêm khách hàng mới!'
             }
           </Typography>
         </Paper>

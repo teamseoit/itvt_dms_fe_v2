@@ -197,7 +197,7 @@ export default function GroupUserList() {
         />
       </Paper>
       ) : (
-        <Typography variant="h6">Bạn không có quyền xem danh sách nhóm quyền</Typography>
+        <Typography variant="h4">Bạn không có quyền xem danh sách nhóm quyền!</Typography>
       )}
 
       <Dialog
