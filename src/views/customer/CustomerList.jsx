@@ -344,11 +344,11 @@ export default function CustomerList() {
                               textTransform: 'none',
                               fontWeight: 500,
                               boxShadow: 'none',
-                              backgroundColor: row.typeCustomer === true ? '#fbe581' : '#52e575',
-                              color: '#000000',
+                              backgroundColor: row.typeCustomer === true ? '#fbe581' : '#2196f3',
+                              color: row.typeCustomer === true ? '#000' : '#fff',
                               '&:hover': {
-                                backgroundColor: row.typeCustomer === true ? '#fbe581' : '#52e575',
-                                color: '#000000',
+                                backgroundColor: row.typeCustomer === true ? '#fbe581' : '#2196f3',
+                                color: row.typeCustomer === true ? '#000' : '#fff',
                               },
                             }}
                           >
