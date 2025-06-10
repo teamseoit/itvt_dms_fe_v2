@@ -23,7 +23,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import GROUP_USER_API from '../../services/groupUserService';
-import ROLE_API from '../../services/roleService';
+import usePermissions from '../../hooks/usePermissions';
+import { PERMISSIONS } from '../../constants/permissions';
 import { formatDateTime } from '../../utils/formatConstants';
 
 const columns = [
@@ -33,12 +34,6 @@ const columns = [
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
 ];
 
-const PERMISSIONS = {
-  ADD: '66746193cb45907845239f39',
-  UPDATE: '66746193cb45907845239f3a',
-  DELETE: '66746193cb45907845239f4a'
-};
-
 export default function GroupUserList() {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -46,7 +41,6 @@ export default function GroupUserList() {
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [permissions, setPermissions] = useState([]);
   const [data, setData] = useState({
     groupUsers: [],
     meta: {
@@ -57,20 +51,7 @@ export default function GroupUserList() {
     }
   });
 
-  const fetchPermissions = async () => {
-    try {
-      const response = await ROLE_API.getRoles();
-      if (response.data.success) {
-        setPermissions(response.data.data || []);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách quyền');
-    }
-  };
-  
-  const hasPermission = (permissionId) => {
-    return permissions.some(permission => permission.permission_id === permissionId);
-  };
+  const { hasPermission } = usePermissions();
 
   const fetchGroupUsers = async (pageNumber = 1) => {
     try {
@@ -91,7 +72,6 @@ export default function GroupUserList() {
 
   useEffect(() => {
     fetchGroupUsers(page + 1);
-    fetchPermissions();
   }, [page]);
 
   const handleChangePage = (event, newPage) => {
@@ -137,7 +117,7 @@ export default function GroupUserList() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h3">Danh sách nhóm quyền</Typography>
-        {hasPermission(PERMISSIONS.ADD) && (
+        {hasPermission(PERMISSIONS.GROUP_USER.ADD) && (
           <Button
             variant="contained"
             startIcon={<IconPlus />}
@@ -149,9 +129,10 @@ export default function GroupUserList() {
         )}
       </Box>
 
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer>
-          <Table stickyHeader aria-label="bảng nhóm quyền">
+      {hasPermission(PERMISSIONS.GROUP_USER.VIEW) ? (
+        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+          <TableContainer>
+            <Table stickyHeader aria-label="bảng nhóm quyền">
             <TableHead>
               <TableRow>
                 {columns.map((column) => (
@@ -177,7 +158,7 @@ export default function GroupUserList() {
                 data.groupUsers.map((row) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                     <TableCell>
-                      {hasPermission(PERMISSIONS.UPDATE) && (
+                      {hasPermission(PERMISSIONS.GROUP_USER.UPDATE) && (
                         <IconButton 
                           color="primary" 
                           onClick={() => handleEdit(row._id || row.id)}
@@ -186,7 +167,7 @@ export default function GroupUserList() {
                           <IconEdit size={18} />
                         </IconButton>
                       )}
-                      {hasPermission(PERMISSIONS.DELETE) && (
+                      {hasPermission(PERMISSIONS.GROUP_USER.DELETE) && (
                         <IconButton 
                           color="error" 
                           onClick={() => handleDeleteClick(row._id || row.id)}
@@ -215,6 +196,9 @@ export default function GroupUserList() {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
         />
       </Paper>
+      ) : (
+        <Typography variant="h6">Bạn không có quyền xem danh sách nhóm quyền</Typography>
+      )}
 
       <Dialog
         open={openDialog}

@@ -50,6 +50,13 @@ const service = {
           breadcrumbs: true
         },
         {
+          id: 'toplist',
+          title: 'Toplist Vũng Tàu',
+          type: 'item',
+          url: '/goi-dich-vu/toplist-vung-tau',
+          breadcrumbs: true
+        },
+        {
           id: 'maintenance',
           title: 'Bảo trì',
           type: 'item',
@@ -124,7 +131,7 @@ const service = {
           id: 'toplist',
           title: 'Toplist Vũng Tàu',
           type: 'item',
-          url: '/dich-vu/toplist',
+          url: '/dich-vu/toplist-vung-tau',
           breadcrumbs: true
         },
         {

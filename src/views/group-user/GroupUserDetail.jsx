@@ -17,8 +17,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import PERMISSION_API from '../../services/permissionService';
 import GROUP_USER_API from '../../services/groupUserService';
+import usePermissions from '../../hooks/usePermissions';
+import { PERMISSIONS } from '../../constants/permissions';
 
-// Add styled component for readonly checkbox
 const ReadOnlyCheckbox = styled(Checkbox)(({ theme }) => ({
   '&.Mui-checked': {
     color: theme.palette.primary.main,
@@ -43,16 +44,16 @@ export default function GroupUserDetail() {
     description: ''
   });
 
+  const { hasPermission } = usePermissions();
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      // First, fetch all permissions
       const permissionsResponse = await PERMISSION_API.getPermissions();
       if (permissionsResponse.data.success) {
         setPermissions(permissionsResponse.data.data || []);
       }
 
-      // Then, fetch group user details
       const groupResponse = await GROUP_USER_API.getById(id);
       if (groupResponse.data.success) {
         const { name, description, permissions: groupPermissions } = groupResponse.data.data;
@@ -89,12 +90,10 @@ export default function GroupUserDetail() {
     return acc;
   }, {});
 
-  // Check if a parent permission should be checked based on its children
   const isParentChecked = (children) => {
     return children.length > 0 && children.every(child => selectedPermissions.includes(child._id));
   };
 
-  // Check if a parent permission should be in indeterminate state
   const isParentIndeterminate = (children) => {
     return children.length > 0 && 
            children.some(child => selectedPermissions.includes(child._id)) &&
@@ -124,7 +123,8 @@ export default function GroupUserDetail() {
         <Typography variant="h3">Chi tiết nhóm quyền</Typography>
       </Box>
 
-      <Paper sx={{ p: 3 }}>
+      {hasPermission(PERMISSIONS.GROUP_USER.UPDATE) ? (
+        <Paper sx={{ p: 3 }}>
         <TextField
           fullWidth
           label="Tên nhóm"
@@ -211,7 +211,10 @@ export default function GroupUserDetail() {
             </Accordion>
           ))}
         </Box>
-      </Paper>
+        </Paper>
+      ) : (
+        <Typography variant="h6">Bạn không có quyền cập nhật nhóm quyền</Typography>
+      )}
     </Box>
   );
 } 

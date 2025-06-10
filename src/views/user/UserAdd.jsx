@@ -21,11 +21,8 @@ import { IconArrowLeft, IconEye, IconEyeOff } from '@tabler/icons-react';
 
 import GROUP_USER_API from '../../services/groupUserService';
 import USER_API from '../../services/userService';
-import ROLE_API from '../../services/roleService';
-
-const PERMISSIONS = {
-  CHANGE_PASSWORD: '66746193cb45907845239f37'
-};
+import usePermissions from '../../hooks/usePermissions';
+import { PERMISSIONS } from '../../constants/permissions';
 
 export default function UserAdd() {
   const theme = useTheme();
@@ -39,7 +36,6 @@ export default function UserAdd() {
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [permissions, setPermissions] = useState([]);
   const [formData, setFormData] = useState({
     username: '',
     displayName: '',
@@ -48,20 +44,7 @@ export default function UserAdd() {
     groupId: ''
   });
 
-  const fetchPermissions = async () => {
-    try {
-      const response = await ROLE_API.getRoles();
-      if (response.data.success) {
-        setPermissions(response.data.data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching permissions:', error);
-    }
-  };
-
-  const hasPermission = (permissionId) => {
-    return permissions.some(permission => permission.permission_id === permissionId);
-  };
+  const { hasPermission } = usePermissions();
 
   const fetchGroups = async () => {
     try {
@@ -98,7 +81,6 @@ export default function UserAdd() {
     if (isEdit) {
       fetchUserData();
     }
-    fetchPermissions();
   }, [id]);
 
   const handleChange = (e) => {
@@ -171,6 +153,16 @@ export default function UserAdd() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    if (isEdit && !hasPermission(PERMISSIONS.USER.UPDATE)) {
+      toast.error('Bạn không có quyền cập nhật tài khoản');
+      return;
+    }
+
+    if (!isEdit && !hasPermission(PERMISSIONS.USER.ADD)) {
+      toast.error('Bạn không có quyền thêm tài khoản mới');
+      return;
+    }
+
     try {
       setLoading(true);
       const userData = {
@@ -205,6 +197,11 @@ export default function UserAdd() {
   const handleChangePassword = async () => {
     if (!validatePassword()) return;
 
+    if (!hasPermission(PERMISSIONS.USER.CHANGE_PASSWORD)) {
+      toast.error('Bạn không có quyền thay đổi mật khẩu');
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await USER_API.changePassword(id, newPassword);
@@ -234,6 +231,43 @@ export default function UserAdd() {
   const toggleShowNewPassword = () => {
     setShowNewPassword(!showNewPassword);
   };
+
+  const isNewPasswordValid = () => {
+    if (!newPassword.trim()) return false;
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$/;
+    return passwordRegex.test(newPassword);
+  };
+
+  const canAdd = !isEdit && hasPermission(PERMISSIONS.USER.ADD);
+  const canUpdate = isEdit && hasPermission(PERMISSIONS.USER.UPDATE);
+  const canChangePassword = isEdit && hasPermission(PERMISSIONS.USER.CHANGE_PASSWORD);
+
+  if (!canAdd && !canUpdate) {
+    return (
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Button
+            variant="text"
+            color="primary"
+            onClick={handleBack}
+            startIcon={<IconArrowLeft />}
+            sx={{ mr: 2 }}
+          >
+            Quay lại
+          </Button>
+          <Typography variant="h3">{isEdit ? 'Cập nhật tài khoản' : 'Thêm tài khoản mới'}</Typography>
+        </Box>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" color="error">
+            {isEdit 
+              ? 'Bạn không có quyền cập nhật tài khoản' 
+              : 'Bạn không có quyền thêm tài khoản mới'
+            }
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -320,7 +354,7 @@ export default function UserAdd() {
           </FormControl>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-            {isEdit && hasPermission(PERMISSIONS.CHANGE_PASSWORD) && (
+            {canChangePassword && (
               <Button
                 variant="outlined"
                 onClick={() => setOpenPasswordDialog(true)}
@@ -363,7 +397,11 @@ export default function UserAdd() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenPasswordDialog(false)}>Hủy</Button>
-          <Button onClick={handleChangePassword} variant="contained" disabled={loading}>
+          <Button 
+            onClick={handleChangePassword} 
+            variant="contained" 
+            disabled={loading || !isNewPasswordValid()}
+          >
             Xác nhận
           </Button>
         </DialogActions>

@@ -12,8 +12,8 @@ import {
 } from '@mui/material';
 
 import CUSTOMER_API from '../../services/customerService';
-import ROLE_API from '../../services/roleService';
-
+import usePermissions from '../../hooks/usePermissions';
+import { PERMISSIONS } from '../../constants/permissions';
 import { convertToFullUrl } from '../../utils/formatConstants';
 
 const genderOptions = [
@@ -30,7 +30,7 @@ export default function CustomerAdd() {
   const isEdit = Boolean(id);
 
   const [loading, setLoading] = useState(false);
-  const [permissions, setPermissions] = useState([]);
+  const { hasPermission } = usePermissions();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -52,15 +52,6 @@ export default function CustomerAdd() {
     typeCustomer: false,
   });
 
-  const fetchPermissions = async () => {
-    try {
-      const res = await ROLE_API.getRoles();
-      if (res.data.success) setPermissions(res.data.data || []);
-    } catch (err) {
-      console.error('Error fetching permissions:', err);
-    }
-  };
-
   const fetchCustomerData = async () => {
     try {
       const res = await CUSTOMER_API.getById(id);
@@ -80,7 +71,6 @@ export default function CustomerAdd() {
   };
 
   useEffect(() => {
-    fetchPermissions();
     if (isEdit) fetchCustomerData();
   }, [id]);
 
@@ -117,6 +107,16 @@ export default function CustomerAdd() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    if (isEdit && !hasPermission(PERMISSIONS.CUSTOMER.UPDATE)) {
+      toast.error('Bạn không có quyền cập nhật khách hàng');
+      return;
+    }
+
+    if (!isEdit && !hasPermission(PERMISSIONS.CUSTOMER.ADD)) {
+      toast.error('Bạn không có quyền thêm khách hàng mới');
+      return;
+    }
+
     try {
       setLoading(true);
       const payload = new FormData();
@@ -143,6 +143,28 @@ export default function CustomerAdd() {
       setLoading(false);
     }
   };
+
+  const canAdd = !isEdit && hasPermission(PERMISSIONS.CUSTOMER.ADD);
+  const canUpdate = isEdit && hasPermission(PERMISSIONS.CUSTOMER.UPDATE);
+
+  if (!canAdd && !canUpdate) {
+    return (
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Button onClick={() => navigate('/khach-hang')} startIcon={<IconArrowLeft />}>Quay lại</Button>
+          <Typography variant="h4" ml={2}>{isEdit ? 'Cập nhật khách hàng' : 'Thêm khách hàng mới'}</Typography>
+        </Box>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" color="error">
+            {isEdit 
+              ? 'Bạn không có quyền cập nhật khách hàng' 
+              : 'Bạn không có quyền thêm khách hàng mới'
+            }
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
 
   return (
     <Box>

@@ -1,0 +1,26 @@
+export const PERMISSIONS = {
+  // User permissions
+  USER: {
+    VIEW: '66746193cb45907845ee9f36',
+    ADD: '66746193cb45907845239f36',
+    UPDATE: '66746193cb45907845239f38',
+    CHANGE_PASSWORD: '66746193cb45907845239f37',
+    DELETE: '66746193cb45907845239f50'
+  },
+
+  // Group user permissions
+  GROUP_USER: {
+    VIEW: '66746193cb45907845fe9f39',
+    ADD: '66746193cb45907845239f39',
+    UPDATE: '66746193cb45907845239f3a',
+    DELETE: '66746193cb45907845239f4a'
+  },
+
+  // Customer permissions
+  CUSTOMER: {
+    VIEW: '667463d04bede188dfb46f7f',
+    ADD: '667463d04bede188dfb46d7e',
+    UPDATE: '667463d04bede188dfb46d7f',
+    DELETE: '667463d04bede188dfb46b7f'
+  }
+};

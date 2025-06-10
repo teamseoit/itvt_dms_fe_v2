@@ -16,6 +16,8 @@ import { IconArrowLeft, IconChevronDown } from '@tabler/icons-react';
 
 import PERMISSION_API from '../../services/permissionService';
 import GROUP_USER_API from '../../services/groupUserService';
+import usePermissions from '../../hooks/usePermissions';
+import { PERMISSIONS } from '../../constants/permissions';
 
 export default function GroupUserAdd() {
   const theme = useTheme();
@@ -27,6 +29,8 @@ export default function GroupUserAdd() {
     name: '',
     description: ''
   });
+
+  const { hasPermission } = usePermissions();
 
   const fetchPermissions = async () => {
     try {
@@ -134,114 +138,118 @@ export default function GroupUserAdd() {
         <Typography variant="h3">Thêm nhóm quyền mới</Typography>
       </Box>
 
-      <Paper sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            label="Tên nhóm (*)"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            sx={{ mb: 3 }}
-          />
-          <TextField
-            fullWidth
-            label="Mô tả (*)"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            multiline
-            rows={4}
-            sx={{ mb: 3 }}
-          />
+      {hasPermission(PERMISSIONS.GROUP_USER.ADD) ? (
+        <Paper sx={{ p: 3 }}>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Tên nhóm (*)"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              sx={{ mb: 3 }}
+            />
+            <TextField
+              fullWidth
+              label="Mô tả (*)"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              multiline
+              rows={4}
+              sx={{ mb: 3 }}
+            />
 
-          <Typography variant="h4" sx={{ mb: 2 }}>Phân quyền (*)</Typography>
-          <Box 
-            sx={{ 
-              mb: 3,
-              maxHeight: '40vh',
-              overflowY: 'auto',
-              '& .MuiAccordion-root': {
-                '&.Mui-expanded': {
-                  '& .MuiAccordionSummary-root': {
-                    position: 'sticky',
-                    top: 0,
-                    backgroundColor: theme.palette.background.paper,
-                    zIndex: 1
+            <Typography variant="h4" sx={{ mb: 2 }}>Phân quyền (*)</Typography>
+            <Box 
+              sx={{ 
+                mb: 3,
+                maxHeight: '40vh',
+                overflowY: 'auto',
+                '& .MuiAccordion-root': {
+                  '&.Mui-expanded': {
+                    '& .MuiAccordionSummary-root': {
+                      position: 'sticky',
+                      top: 0,
+                      backgroundColor: theme.palette.background.paper,
+                      zIndex: 1
+                    }
                   }
                 }
-              }
-            }}
-          >
-            {Object.values(groupedPermissions).map(({ parent, children }) => (
-              <Accordion key={parent._id} sx={{ mb: 1 }}>
-                <AccordionSummary 
-                  expandIcon={<IconChevronDown />}
-                  sx={{
-                    minHeight: '48px !important',
-                    height: '48px',
-                    '& .MuiAccordionSummary-content': {
-                      margin: '0 !important',
-                    }
-                  }}
-                >
-                  <FormControlLabel
-                    label={parent.name}
-                    control={
-                      <Checkbox
-                        checked={children.every(child => selectedPermissions.includes(child._id))}
-                        indeterminate={
-                          children.some(child => selectedPermissions.includes(child._id)) &&
-                          !children.every(child => selectedPermissions.includes(child._id))
-                        }
-                        onChange={() => {
-                          const childIds = children.map(child => child._id);
-                          if (children.every(child => selectedPermissions.includes(child._id))) {
-                            setSelectedPermissions(prev => prev.filter(id => !childIds.includes(id)));
-                          } else {
-                            setSelectedPermissions(prev => [
-                              ...new Set([...prev, ...childIds])
-                            ]);
-                          }
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    }
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ml: 3 }}>
-                    {children.map(permission => (
-                      <FormControlLabel
-                        key={permission._id}
-                        control={
-                          <Checkbox
-                            checked={selectedPermissions.includes(permission._id)}
-                            onChange={() => handlePermissionChange(permission._id)}
-                          />
-                        }
-                        label={permission.name}
-                      />
-                    ))}
-                  </Box>
-                </AccordionDetails>
-              </Accordion>
-            ))}
-          </Box>
-
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="contained"
-              type="submit"
-              disabled={loading}
-              sx={{ backgroundColor: theme.palette.primary.main }}
+              }}
             >
-              {loading ? 'Đang xử lý...' : 'Thêm mới'}
-            </Button>
-          </Box>
-        </form>
-      </Paper>
+              {Object.values(groupedPermissions).map(({ parent, children }) => (
+                <Accordion key={parent._id} sx={{ mb: 1 }}>
+                  <AccordionSummary 
+                    expandIcon={<IconChevronDown />}
+                    sx={{
+                      minHeight: '48px !important',
+                      height: '48px',
+                      '& .MuiAccordionSummary-content': {
+                        margin: '0 !important',
+                      }
+                    }}
+                  >
+                    <FormControlLabel
+                      label={parent.name}
+                      control={
+                        <Checkbox
+                          checked={children.every(child => selectedPermissions.includes(child._id))}
+                          indeterminate={
+                            children.some(child => selectedPermissions.includes(child._id)) &&
+                            !children.every(child => selectedPermissions.includes(child._id))
+                          }
+                          onChange={() => {
+                            const childIds = children.map(child => child._id);
+                            if (children.every(child => selectedPermissions.includes(child._id))) {
+                              setSelectedPermissions(prev => prev.filter(id => !childIds.includes(id)));
+                            } else {
+                              setSelectedPermissions(prev => [
+                                ...new Set([...prev, ...childIds])
+                              ]);
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      }
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ml: 3 }}>
+                      {children.map(permission => (
+                        <FormControlLabel
+                          key={permission._id}
+                          control={
+                            <Checkbox
+                              checked={selectedPermissions.includes(permission._id)}
+                              onChange={() => handlePermissionChange(permission._id)}
+                            />
+                          }
+                          label={permission.name}
+                        />
+                      ))}
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="contained"
+                type="submit"
+                disabled={loading}
+                sx={{ backgroundColor: theme.palette.primary.main }}
+              >
+                {loading ? 'Đang xử lý...' : 'Thêm mới'}
+              </Button>
+            </Box>
+          </form>
+        </Paper>
+      ) : (
+        <Typography variant="h6">Bạn không có quyền thêm nhóm quyền</Typography>
+      )}
     </Box>
   );
 } 
