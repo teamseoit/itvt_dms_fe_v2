@@ -38,6 +38,8 @@ const NetworkSupplierAdd = Loadable(lazy(() => import('views/supplier/network/Ne
 // Plan Service Management
 const DomainPlanList = Loadable(lazy(() => import('views/plans/domain/DomainPlanList.jsx')));
 const DomainPlanAdd = Loadable(lazy(() => import('views/plans/domain/DomainPlanAdd.jsx')));
+const HostingPlanList = Loadable(lazy(() => import('views/plans/hosting/HostingPlanList.jsx')));
+const HostingPlanAdd = Loadable(lazy(() => import('views/plans/hosting/HostingPlanAdd.jsx')));
 
 function RootLayout() {
   const { isAuthenticated } = useAuth();
@@ -229,6 +231,18 @@ const router = createBrowserRouter([
                 path: 'ten-mien/:id',
                 element: <DomainPlanAdd />
               },
+              {
+                path: 'hosting',
+                element: <HostingPlanList />
+              },
+              {
+                path: 'hosting/them-moi',
+                element: <HostingPlanAdd />
+              },
+              {
+                path: 'hosting/:id',
+                element: <HostingPlanAdd />
+              }
             ]
           },
         ]
