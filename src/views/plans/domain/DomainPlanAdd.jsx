@@ -4,13 +4,14 @@ import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import {
   Box, Button, Typography, Paper, TextField,
-  FormControl, InputLabel, Select, MenuItem
+  FormControl, InputLabel, Select, MenuItem, Switch
 } from '@mui/material';
 import { IconArrowLeft } from '@tabler/icons-react';
 
 import DOMAIN_PLAN_API from '../../../services/plans/domainPlanService';
 import SERVICE_SUPPLIER_API from '../../../services/serviceSupplierService';
-import ROLE_API from '../../../services/roleService';
+import usePermissions from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../constants/permissions';
 
 import { formatCurrencyInput, parseCurrency } from '../../../utils/formatConstants';
 
@@ -22,13 +23,18 @@ export default function DomainPlanAdd() {
 
   const [loading, setLoading] = useState(false);
   const [serviceSupplier, setServiceSupplier] = useState([]);
-  const [permissions, setPermissions] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
+    extension: '',
     purchasePrice: '',
     retailPrice: '',
-    supplier: ''
+    renewalPrice: '',
+    registrationYears: 1,
+    supplier: '',
+    isActive: true
   });
+
+  const { hasPermission } = usePermissions();
 
   const handlePriceChange = (e) => {
     const { name, value } = e.target;
@@ -40,22 +46,11 @@ export default function DomainPlanAdd() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
-  };
-
-  const fetchPermissions = async () => {
-    try {
-      const response = await ROLE_API.getRoles();
-      if (response.data.success) {
-        setPermissions(response.data.data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching permissions:', error);
-    }
   };
 
   const fetchServiceSupplier = async () => {
@@ -76,9 +71,13 @@ export default function DomainPlanAdd() {
         const domainPlanData = response.data.data;
         setFormData({
           name: domainPlanData.name || '',
-          purchasePrice: formatCurrencyInput(domainPlanData.purchasePrice.toString()),
-          retailPrice: formatCurrencyInput(domainPlanData.retailPrice.toString()),
-          supplier: domainPlanData.supplier?._id || domainPlanData.supplier || ''
+          extension: domainPlanData.extension || '',
+          purchasePrice: formatCurrencyInput(domainPlanData.purchasePrice?.toString() || '0'),
+          retailPrice: formatCurrencyInput(domainPlanData.retailPrice?.toString() || '0'),
+          renewalPrice: formatCurrencyInput(domainPlanData.renewalPrice?.toString() || '0'),
+          registrationYears: domainPlanData.registrationYears || 1,
+          supplier: domainPlanData.supplier?._id || domainPlanData.supplier || '',
+          isActive: domainPlanData.isActive ?? true
         });
       }
     } catch (error) {
@@ -92,22 +91,34 @@ export default function DomainPlanAdd() {
     if (isEdit) {
       fetchDomainPlan();
     }
-    fetchPermissions();
   }, [id]);
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      toast.error('Vui lòng nhập tên');
+      toast.error('Vui lòng nhập tên gói');
       return false;
     }
+
+    if (!formData.extension.trim()) {
+      toast.error('Vui lòng nhập đuôi tên miền');
+      return false;
+    }
+
     if (!formData.purchasePrice) {
       toast.error('Vui lòng nhập giá nhập');
       return false;
     }
+
     if (!formData.retailPrice) {
       toast.error('Vui lòng nhập giá bán');
       return false;
     }
+
+    if (!formData.renewalPrice) {
+      toast.error('Vui lòng nhập giá gia hạn');
+      return false;
+    }
+
     if (!formData.supplier) {
       toast.error('Vui lòng chọn nhà cung cấp');
       return false;
@@ -119,13 +130,27 @@ export default function DomainPlanAdd() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    if (isEdit && !hasPermission(PERMISSIONS.DOMAIN_PLAN.UPDATE)) {
+      toast.error('Bạn không có quyền cập nhật gói dịch vụ tên miền');
+      return;
+    }
+
+    if (!isEdit && !hasPermission(PERMISSIONS.DOMAIN_PLAN.ADD)) {
+      toast.error('Bạn không có quyền thêm gói dịch vụ tên miền mới');
+      return;
+    }
+
     try {
       setLoading(true);
       const domainPlanData = {
         name: formData.name,
+        extension: formData.extension,
         purchasePrice: parseCurrency(formData.purchasePrice),
         retailPrice: parseCurrency(formData.retailPrice),
-        supplier: formData.supplier
+        renewalPrice: parseCurrency(formData.renewalPrice),
+        registrationYears: Number(formData.registrationYears) || 1,
+        supplier: formData.supplier,
+        isActive: formData.isActive
       };
 
       const response = isEdit
@@ -169,14 +194,22 @@ export default function DomainPlanAdd() {
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Tên miền (*)"
+            label="Tên gói (*)"
             name="name"
             value={formData.name}
             onChange={handleChange}
             disabled={isEdit}
             sx={{ mb: 3 }}
           />
-
+          <TextField
+            fullWidth
+            label="Đuôi tên miền (ví dụ: .com) (*)"
+            name="extension"
+            value={formData.extension}
+            onChange={handleChange}
+            disabled={isEdit}
+            sx={{ mb: 3 }}
+          />
           <TextField
             fullWidth
             label="Giá nhập (*)"
@@ -186,7 +219,6 @@ export default function DomainPlanAdd() {
             sx={{ mb: 3 }}
             inputProps={{ inputMode: 'numeric' }}
           />
-
           <TextField
             fullWidth
             label="Giá bán (*)"
@@ -196,7 +228,25 @@ export default function DomainPlanAdd() {
             sx={{ mb: 3 }}
             inputProps={{ inputMode: 'numeric' }}
           />
-
+          <TextField
+            fullWidth
+            label="Giá gia hạn hàng năm (*)"
+            name="renewalPrice"
+            value={formData.renewalPrice}
+            onChange={handlePriceChange}
+            sx={{ mb: 3 }}
+            inputProps={{ inputMode: 'numeric' }}
+          />
+          <TextField
+            fullWidth
+            label="Số năm đăng ký mặc định"
+            name="registrationYears"
+            type="number"
+            value={formData.registrationYears}
+            onChange={handleChange}
+            sx={{ mb: 3 }}
+            inputProps={{ min: 1 }}
+          />
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="group-label">Nhà cung cấp (*)</InputLabel>
             <Select
@@ -214,7 +264,21 @@ export default function DomainPlanAdd() {
               ))}
             </Select>
           </FormControl>
-
+          <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 3 }}>
+            <Typography component="span" sx={{ mr: 2 }}>
+              Hiển thị gói dịch vụ
+            </Typography>
+            <Switch
+              name="isActive"
+              checked={formData.isActive}
+              onChange={(e) =>
+                setFormData(prev => ({
+                  ...prev,
+                  isActive: e.target.checked
+                }))
+              }
+          />
+          </FormControl>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
             <Button
               type="submit"

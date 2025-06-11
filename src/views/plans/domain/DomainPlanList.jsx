@@ -23,23 +23,21 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import DOMAIN_PLAN_API from '../../../services/plans/domainPlanService';
-import ROLE_API from '../../../services/roleService';
+import usePermissions from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../constants/permissions';
 import { formatDateTime, formatPrice } from '../../../utils/formatConstants';
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
-  { id: 'name', label: 'Tên miền', minWidth: 120 },
+  { id: 'name', label: 'Tên gói', minWidth: 120 },
+  { id: 'extension', label: 'Đuôi tên miền', minWidth: 80 },
   { id: 'purchasePrice', label: 'Giá nhập', minWidth: 120 },
   { id: 'retailPrice', label: 'Giá bán', minWidth: 120 },
+  { id: 'renewalPrice', label: 'Giá gia hạn', minWidth: 120 },
   { id: 'supplier', label: 'Nhà cung cấp', minWidth: 200 },
+  { id: 'isActive', label: 'Trạng thái', minWidth: 80 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
 ];
-
-const PERMISSIONS = {
-  ADD: '66746678f7f723b779b1b05f',
-  UPDATE: '66746678f7f723b779b1b060',
-  DELETE: '66746678f7f723b779b1b061'
-};
 
 export default function DomainPlanList() {
   const theme = useTheme();
@@ -48,7 +46,6 @@ export default function DomainPlanList() {
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [permissions, setPermissions] = useState([]);
   const [data, setData] = useState({
     domainPlan: [],
     meta: {
@@ -59,20 +56,7 @@ export default function DomainPlanList() {
     }
   });
 
-  const fetchPermissions = async () => {
-    try {
-      const response = await ROLE_API.getRoles();
-      if (response.data.success) {
-        setPermissions(response.data.data || []);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách tài khoản');
-    }
-  };
-  
-  const hasPermission = (permissionId) => {
-    return permissions.some(permission => permission.permission_id === permissionId);
-  };
+  const { hasPermission } = usePermissions();
 
   const fetchDomainPlan = async (pageNumber = 1) => {
     try {
@@ -93,7 +77,6 @@ export default function DomainPlanList() {
 
   useEffect(() => {
     fetchDomainPlan(page + 1);
-    fetchPermissions();
   }, [page]);
 
   const handleChangePage = (event, newPage) => {
@@ -118,11 +101,11 @@ export default function DomainPlanList() {
       setLoading(true);
       const response = await DOMAIN_PLAN_API.delete(deleteId);
       if (response.data.success) {
-        toast.success('Xóa tài khoản thành công');
+        toast.success('Xóa gói dịch vụ tên miền thành công');
         fetchDomainPlan(page + 1);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa tài khoản');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa gói dịch vụ tên miền');
     } finally {
       setLoading(false);
       setOpenDialog(false);
@@ -139,7 +122,7 @@ export default function DomainPlanList() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h3">Danh sách gói dịch vụ tên miền</Typography>
-        {hasPermission(PERMISSIONS.ADD) && (
+        {hasPermission(PERMISSIONS.DOMAIN_PLAN.ADD) && (
           <Button
             variant="contained"
             startIcon={<IconPlus />}
@@ -151,6 +134,7 @@ export default function DomainPlanList() {
         )}
       </Box>
 
+      {hasPermission(PERMISSIONS.DOMAIN_PLAN.VIEW) ? (
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer>
           <Table stickyHeader aria-label="bảng gói dịch vụ tên miền">
@@ -171,7 +155,7 @@ export default function DomainPlanList() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center">
+                  <TableCell colSpan={6} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
@@ -179,7 +163,7 @@ export default function DomainPlanList() {
                 data.domainPlan.map((row) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                     <TableCell>
-                      {hasPermission(PERMISSIONS.UPDATE) && (
+                      {hasPermission(PERMISSIONS.DOMAIN_PLAN.UPDATE) && (
                         <IconButton 
                           color="primary" 
                           onClick={() => handleEdit(row._id || row.id)}
@@ -188,7 +172,7 @@ export default function DomainPlanList() {
                           <IconEdit size={18} />
                         </IconButton>
                       )}
-                      {hasPermission(PERMISSIONS.DELETE) && (
+                      {hasPermission(PERMISSIONS.DOMAIN_PLAN.DELETE) && (
                         <IconButton 
                           color="error" 
                           onClick={() => handleDeleteClick(row._id || row.id)}
@@ -199,9 +183,29 @@ export default function DomainPlanList() {
                       )}
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
+                    <TableCell>{row.extension}</TableCell>
                     <TableCell>{formatPrice(row.purchasePrice)}</TableCell>
                     <TableCell>{formatPrice(row.retailPrice)}</TableCell>
+                    <TableCell>{formatPrice(row.renewalPrice)}</TableCell>
                     <TableCell>{row.supplier?.company}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        sx={{
+                          borderRadius: '5px',
+                          textTransform: 'none',
+                          fontWeight: 500,
+                          boxShadow: 'none',
+                          backgroundColor: row.isActive ? '#4caf50' : '#f44336',
+                          '&:hover': {
+                            backgroundColor: row.isActive ? '#4caf50' : '#f44336',
+                          },
+                        }}
+                      >
+                        {row.isActive ? 'Hoạt động' : 'Đã hủy'}
+                      </Button>
+                    </TableCell>
                     <TableCell>{formatDateTime(row.createdAt)}</TableCell>
                   </TableRow>
                 ))
@@ -219,6 +223,13 @@ export default function DomainPlanList() {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
         />
       </Paper>
+      ) : (
+        <Paper sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant="h6" color="error">
+            Bạn không có quyền xem danh sách gói dịch vụ tên miền
+          </Typography>
+        </Paper>
+      )}
 
       <Dialog
         open={openDialog}

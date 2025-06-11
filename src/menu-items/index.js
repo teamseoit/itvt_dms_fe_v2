@@ -8,7 +8,7 @@ import contract from './contract';
 import storage from './storage';
 
 const menuItems = {
-  items: [dashboard, account, customer, supplier, itvt, service, contract, storage]
+  items: [dashboard, account, customer, supplier, service, itvt, contract, storage]
 };
 
 export default menuItems;
