@@ -11,6 +11,8 @@ import {
 import { IconArrowLeft } from '@tabler/icons-react';
 
 import SERVICE_SUPPLIER_API from '../../../services/serviceSupplierService';
+import usePermissions from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../constants/permissions';
 
 export default function ServiceSupplierAdd() {
   const navigate = useNavigate();
@@ -29,6 +31,8 @@ export default function ServiceSupplierAdd() {
     supportPhone: '',
     address: ''
   });
+
+  const { hasPermission } = usePermissions();
 
   const fetchSupplierData = async () => {
     try {
@@ -76,6 +80,16 @@ export default function ServiceSupplierAdd() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    if (isEdit && !hasPermission(PERMISSIONS.SERVICE_SUPPLIER.UPDATE)) {
+      toast.error('Bạn không có quyền cập nhật nhà cung cấp dịch vụ');
+      return;
+    }
+
+    if (!isEdit && !hasPermission(PERMISSIONS.SERVICE_SUPPLIER.ADD)) {
+      toast.error('Bạn không có quyền thêm nhà cung cấp dịch vụ mới');
+      return;
+    }
+
     try {
       setLoading(true);
       const res = isEdit
@@ -97,6 +111,38 @@ export default function ServiceSupplierAdd() {
 
   const handleBack = () => navigate('/ncc/dich-vu');
 
+  const canAdd = !isEdit && hasPermission(PERMISSIONS.SERVICE_SUPPLIER.ADD);
+  const canUpdate = isEdit && hasPermission(PERMISSIONS.SERVICE_SUPPLIER.UPDATE);
+
+  if (!canAdd && !canUpdate) {
+    return (
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Button
+            variant="text"
+            color="primary"
+            onClick={handleBack}
+            startIcon={<IconArrowLeft />}
+            sx={{ mr: 2 }}
+          >
+            Quay lại
+          </Button>
+          <Typography variant="h3">
+            {isEdit ? 'Cập nhật nhà cung cấp dịch vụ' : 'Thêm nhà cung cấp dịch vụ'}
+          </Typography>
+        </Box>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h4" color="error">
+            {isEdit 
+              ? 'Bạn không có quyền cập nhật nhà cung cấp dịch vụ!' 
+              : 'Bạn không có quyền thêm nhà cung cấp dịch vụ mới!'
+            }
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -105,10 +151,11 @@ export default function ServiceSupplierAdd() {
           color="primary"
           onClick={handleBack}
           startIcon={<IconArrowLeft />}
+          sx={{ mr: 2 }}
         >
           Quay lại
         </Button>
-        <Typography variant="h4" sx={{ ml: 2 }}>
+        <Typography variant="h3">
           {isEdit ? 'Cập nhật nhà cung cấp dịch vụ' : 'Thêm nhà cung cấp dịch vụ'}
         </Typography>
       </Box>

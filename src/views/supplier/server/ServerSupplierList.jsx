@@ -23,9 +23,9 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
-
 import SERVER_SUPPLIER_API from '../../../services/serverSupplierService';
-import ROLE_API from '../../../services/roleService';
+import usePermissions from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../constants/permissions';
 import { formatDateTime, extractDomain, maskPhoneNumber } from '../../../utils/formatConstants';
 
 const columns = [
@@ -38,12 +38,6 @@ const columns = [
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
 ];
 
-const PERMISSIONS = {
-  ADD: '667463d04bede188dfb46a81',
-  UPDATE: '667463d04bede188dfb46e81',
-  DELETE: '667463d04bede188dfb46f81'
-};
-
 export default function ServerSupplierList() {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -51,7 +45,6 @@ export default function ServerSupplierList() {
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [permissions, setPermissions] = useState([]);
   const [data, setData] = useState({
     serverSuppliers: [],
     meta: {
@@ -62,20 +55,7 @@ export default function ServerSupplierList() {
     }
   });
 
-  const fetchPermissions = async () => {
-    try {
-      const response = await ROLE_API.getRoles();
-      if (response.data.success) {
-        setPermissions(response.data.data || []);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách quyền');
-    }
-  };
-  
-  const hasPermission = (permissionId) => {
-    return permissions.some(permission => permission.permission_id === permissionId);
-  };
+  const { hasPermission } = usePermissions();
 
   const fetchServerSuppliers = async (pageNumber = 1) => {
     try {
@@ -96,7 +76,6 @@ export default function ServerSupplierList() {
 
   useEffect(() => {
     fetchServerSuppliers(page + 1);
-    fetchPermissions();
   }, [page]);
 
   const handleChangePage = (event, newPage) => {
@@ -142,7 +121,7 @@ export default function ServerSupplierList() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h3">Danh sách nhà cung cấp server</Typography>
-        {hasPermission(PERMISSIONS.ADD) && (
+        {hasPermission(PERMISSIONS.SERVER_SUPPLIER.ADD) && (
           <Button
             variant="contained"
             startIcon={<IconPlus />}
@@ -154,6 +133,7 @@ export default function ServerSupplierList() {
         )}
       </Box>
 
+      {hasPermission(PERMISSIONS.SERVER_SUPPLIER.VIEW) ? (
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer>
           <Table stickyHeader aria-label="bảng server">
@@ -182,7 +162,7 @@ export default function ServerSupplierList() {
                 data.serverSuppliers.map((row) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                     <TableCell>
-                      {hasPermission(PERMISSIONS.UPDATE) && (
+                      {hasPermission(PERMISSIONS.SERVER_SUPPLIER.UPDATE) && (
                         <IconButton 
                           color="primary" 
                           onClick={() => handleEdit(row._id || row.id)}
@@ -191,7 +171,7 @@ export default function ServerSupplierList() {
                           <IconEdit size={18} />
                         </IconButton>
                       )}
-                      {hasPermission(PERMISSIONS.DELETE) && (
+                      {hasPermission(PERMISSIONS.SERVER_SUPPLIER.DELETE) && (
                         <IconButton 
                           color="error" 
                           onClick={() => handleDeleteClick(row._id || row.id)}
@@ -236,6 +216,9 @@ export default function ServerSupplierList() {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
         />
       </Paper>
+      ) : (
+        <Typography variant="h4">Bạn không có quyền xem danh sách nhà cung cấp server!</Typography>
+      )}
 
       <Dialog
         open={openDialog}

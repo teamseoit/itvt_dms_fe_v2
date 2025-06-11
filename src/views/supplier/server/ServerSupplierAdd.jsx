@@ -11,6 +11,8 @@ import {
 import { IconArrowLeft } from '@tabler/icons-react';
 
 import SERVER_SUPPLIER_API from '../../../services/serverSupplierService';
+import usePermissions from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../constants/permissions';
 
 export default function ServerSupplierAdd() {
   const navigate = useNavigate();
@@ -29,6 +31,8 @@ export default function ServerSupplierAdd() {
     supportPhone: '',
     address: ''
   });
+
+  const { hasPermission } = usePermissions();
 
   const fetchServerSupplier = async () => {
     try {
@@ -76,6 +80,16 @@ export default function ServerSupplierAdd() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    if (isEdit && !hasPermission(PERMISSIONS.SERVER_SUPPLIER.UPDATE)) {
+      toast.error('Bạn không có quyền cập nhật nhà cung cấp server');
+      return;
+    }
+
+    if (!isEdit && !hasPermission(PERMISSIONS.SERVER_SUPPLIER.ADD)) {
+      toast.error('Bạn không có quyền thêm nhà cung cấp server mới');
+      return;
+    }
+
     try {
       setLoading(true);
       const res = isEdit
@@ -96,6 +110,36 @@ export default function ServerSupplierAdd() {
   };
 
   const handleBack = () => navigate('/ncc/server');
+
+  const canAdd = !isEdit && hasPermission(PERMISSIONS.SERVER_SUPPLIER.ADD);
+  const canUpdate = isEdit && hasPermission(PERMISSIONS.SERVER_SUPPLIER.UPDATE);
+
+  if (!canAdd && !canUpdate) {
+    return (
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Button
+            variant="text"
+            color="primary"
+            onClick={handleBack}
+            startIcon={<IconArrowLeft />}
+            sx={{ mr: 2 }}
+          >
+            Quay lại
+          </Button>
+          <Typography variant="h3">{isEdit ? 'Cập nhật nhà cung cấp server' : 'Thêm nhà cung cấp server'}</Typography>
+        </Box>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h4" color="error">
+            {isEdit 
+              ? 'Bạn không có quyền cập nhật nhà cung cấp server!' 
+              : 'Bạn không có quyền thêm nhà cung cấp server mới!'
+            }
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
 
   return (
     <Box>

@@ -11,6 +11,8 @@ import {
 import { IconArrowLeft } from '@tabler/icons-react';
 
 import NETWORK_SUPPLIER_API from '../../../services/networkSupplierService';
+import usePermissions from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../constants/permissions';
 
 export default function NetworkSupplierAdd() {
   const navigate = useNavigate();
@@ -29,6 +31,8 @@ export default function NetworkSupplierAdd() {
     supportPhone: '',
     address: ''
   });
+
+  const { hasPermission } = usePermissions();
 
   const fetchNetworkSupplier = async () => {
     try {
@@ -76,6 +80,16 @@ export default function NetworkSupplierAdd() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    if (isEdit && !hasPermission(PERMISSIONS.NETWORK_SUPPLIER.UPDATE)) {
+      toast.error('Bạn không có quyền cập nhật nhà cung cấp mạng');
+      return;
+    }
+
+    if (!isEdit && !hasPermission(PERMISSIONS.NETWORK_SUPPLIER.ADD)) {
+      toast.error('Bạn không có quyền thêm nhà cung cấp mạng mới');
+      return;
+    }
+
     try {
       setLoading(true);
       const res = isEdit
@@ -97,6 +111,36 @@ export default function NetworkSupplierAdd() {
 
   const handleBack = () => navigate('/ncc/mang');
 
+  const canAdd = !isEdit && hasPermission(PERMISSIONS.NETWORK_SUPPLIER.ADD);
+  const canUpdate = isEdit && hasPermission(PERMISSIONS.NETWORK_SUPPLIER.UPDATE);
+
+  if (!canAdd && !canUpdate) {
+    return (
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Button
+            variant="text"
+            color="primary"
+            onClick={handleBack}
+            startIcon={<IconArrowLeft />}
+            sx={{ mr: 2 }}
+          >
+            Quay lại
+          </Button>
+          <Typography variant="h3">{isEdit ? 'Cập nhật nhà cung cấp mạng' : 'Thêm nhà cung cấp mạng'}</Typography>
+        </Box>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h4" color="error">
+            {isEdit 
+              ? 'Bạn không có quyền cập nhật nhà cung cấp mạng!' 
+              : 'Bạn không có quyền thêm nhà cung cấp mạng mới!'
+            }
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -105,10 +149,11 @@ export default function NetworkSupplierAdd() {
           color="primary"
           onClick={handleBack}
           startIcon={<IconArrowLeft />}
+          sx={{ mr: 2 }}
         >
           Quay lại
         </Button>
-        <Typography variant="h4" sx={{ ml: 2 }}>
+        <Typography variant="h3">
           {isEdit ? 'Cập nhật nhà cung cấp mạng' : 'Thêm nhà cung cấp mạng'}
         </Typography>
       </Box>

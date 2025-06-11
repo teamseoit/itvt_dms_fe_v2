@@ -23,9 +23,9 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
-
 import SERVICE_SUPPLIER_API from '../../../services/serviceSupplierService';
-import ROLE_API from '../../../services/roleService';
+import usePermissions from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../constants/permissions';
 import { formatDateTime, extractDomain, maskPhoneNumber } from '../../../utils/formatConstants';
 
 const columns = [
@@ -38,12 +38,6 @@ const columns = [
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
 ];
 
-const PERMISSIONS = {
-  ADD: '667463d04bede188dfb46d76',
-  UPDATE: '667463d04bede188dfb46d77',
-  DELETE: '667463d04bede188dfb46d78'
-};
-
 export default function ServiceSupplierList() {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -51,7 +45,6 @@ export default function ServiceSupplierList() {
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [permissions, setPermissions] = useState([]);
   const [data, setData] = useState({
     serviceSuppliers: [],
     meta: {
@@ -62,20 +55,7 @@ export default function ServiceSupplierList() {
     }
   });
 
-  const fetchPermissions = async () => {
-    try {
-      const response = await ROLE_API.getRoles();
-      if (response.data.success) {
-        setPermissions(response.data.data || []);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách quyền');
-    }
-  };
-  
-  const hasPermission = (permissionId) => {
-    return permissions.some(permission => permission.permission_id === permissionId);
-  };
+  const { hasPermission } = usePermissions();
 
   const fetchServiceSuppliers = async (pageNumber = 1) => {
     try {
@@ -96,7 +76,6 @@ export default function ServiceSupplierList() {
 
   useEffect(() => {
     fetchServiceSuppliers(page + 1);
-    fetchPermissions();
   }, [page]);
 
   const handleChangePage = (event, newPage) => {
@@ -142,7 +121,7 @@ export default function ServiceSupplierList() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h3">Danh sách nhà cung cấp dịch vụ</Typography>
-        {hasPermission(PERMISSIONS.ADD) && (
+        {hasPermission(PERMISSIONS.SERVICE_SUPPLIER.ADD) && (
           <Button
             variant="contained"
             startIcon={<IconPlus />}
@@ -154,9 +133,10 @@ export default function ServiceSupplierList() {
         )}
       </Box>
 
+      {hasPermission(PERMISSIONS.SERVICE_SUPPLIER.VIEW) ? (
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer>
-          <Table stickyHeader aria-label="bảng nhóm quyền">
+          <Table stickyHeader aria-label="bảng nhà cung cấp dịch vụ">
             <TableHead>
               <TableRow>
                 {columns.map((column) => (
@@ -174,7 +154,7 @@ export default function ServiceSupplierList() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center">
+                  <TableCell colSpan={7} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
@@ -182,7 +162,7 @@ export default function ServiceSupplierList() {
                 data.serviceSuppliers.map((row) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                     <TableCell>
-                      {hasPermission(PERMISSIONS.UPDATE) && (
+                      {hasPermission(PERMISSIONS.SERVICE_SUPPLIER.UPDATE) && (
                         <IconButton 
                           color="primary" 
                           onClick={() => handleEdit(row._id || row.id)}
@@ -191,7 +171,7 @@ export default function ServiceSupplierList() {
                           <IconEdit size={18} />
                         </IconButton>
                       )}
-                      {hasPermission(PERMISSIONS.DELETE) && (
+                      {hasPermission(PERMISSIONS.SERVICE_SUPPLIER.DELETE) && (
                         <IconButton 
                           color="error" 
                           onClick={() => handleDeleteClick(row._id || row.id)}
@@ -236,6 +216,13 @@ export default function ServiceSupplierList() {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
         />
       </Paper>
+      ) : (
+        <Paper sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant="h6" color="error">
+            Bạn không có quyền xem danh sách nhà cung cấp dịch vụ
+          </Typography>
+        </Paper>
+      )}
 
       <Dialog
         open={openDialog}

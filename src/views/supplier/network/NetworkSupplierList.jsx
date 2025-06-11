@@ -23,9 +23,9 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
-
 import NETWORK_SUPPLIER_API from '../../../services/networkSupplierService';
-import ROLE_API from '../../../services/roleService';
+import usePermissions from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../constants/permissions';
 import { formatDateTime, extractDomain, maskPhoneNumber } from '../../../utils/formatConstants';
 
 const columns = [
@@ -38,12 +38,6 @@ const columns = [
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
 ];
 
-const PERMISSIONS = {
-  ADD: '667463d04bede188dfb46d79',
-  UPDATE: '667463d04bede188dfb46d80',
-  DELETE: '667463d04bede188dfb46d81'
-};
-
 export default function NetworkSupplierList() {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -51,7 +45,6 @@ export default function NetworkSupplierList() {
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [permissions, setPermissions] = useState([]);
   const [data, setData] = useState({
     networkSuppliers: [],
     meta: {
@@ -62,20 +55,7 @@ export default function NetworkSupplierList() {
     }
   });
 
-  const fetchPermissions = async () => {
-    try {
-      const response = await ROLE_API.getRoles();
-      if (response.data.success) {
-        setPermissions(response.data.data || []);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách quyền');
-    }
-  };
-  
-  const hasPermission = (permissionId) => {
-    return permissions.some(permission => permission.permission_id === permissionId);
-  };
+  const { hasPermission } = usePermissions();
 
   const fetchNetworkSuppliers = async (pageNumber = 1) => {
     try {
@@ -96,7 +76,6 @@ export default function NetworkSupplierList() {
 
   useEffect(() => {
     fetchNetworkSuppliers(page + 1);
-    fetchPermissions();
   }, [page]);
 
   const handleChangePage = (event, newPage) => {
@@ -142,7 +121,7 @@ export default function NetworkSupplierList() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h3">Danh sách nhà cung cấp mạng</Typography>
-        {hasPermission(PERMISSIONS.ADD) && (
+        {hasPermission(PERMISSIONS.NETWORK_SUPPLIER.ADD) && (
           <Button
             variant="contained"
             startIcon={<IconPlus />}
@@ -154,88 +133,92 @@ export default function NetworkSupplierList() {
         )}
       </Box>
 
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer>
-          <Table stickyHeader aria-label="bảng mạng">
-            <TableHead>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableCell
-                    key={column.id}
-                    align={column.align}
-                    style={{ minWidth: column.minWidth }}
-                    sx={{ backgroundColor: theme.palette.primary.light }}
-                  >
-                    {column.label}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
+      {hasPermission(PERMISSIONS.NETWORK_SUPPLIER.VIEW) ? (
+        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+          <TableContainer>
+            <Table stickyHeader aria-label="bảng mạng">
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data.networkSuppliers.map((row) => (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
-                    <TableCell>
-                      {hasPermission(PERMISSIONS.UPDATE) && (
-                        <IconButton 
-                          color="primary" 
-                          onClick={() => handleEdit(row._id || row.id)}
-                          size="small"
-                        >
-                          <IconEdit size={18} />
-                        </IconButton>
-                      )}
-                      {hasPermission(PERMISSIONS.DELETE) && (
-                        <IconButton 
-                          color="error" 
-                          onClick={() => handleDeleteClick(row._id || row.id)}
-                          size="small"
-                        >
-                          <IconTrash size={18} />
-                        </IconButton>
-                      )}
-                    </TableCell>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.company}</TableCell>
-                    <TableCell>{maskPhoneNumber(row.phone)}</TableCell>
-                    <TableCell>
-                      <Link to={row.website} target="_blank" rel="noopener noreferrer">
-                        {extractDomain(row.website)}
-                      </Link>
-                    </TableCell>
+                  {columns.map((column) => (
                     <TableCell
-                      sx={{
-                        maxWidth: 170,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
+                      key={column.id}
+                      align={column.align}
+                      style={{ minWidth: column.minWidth }}
+                      sx={{ backgroundColor: theme.palette.primary.light }}
                     >
-                      {row.address}
+                      {column.label}
                     </TableCell>
-                    <TableCell>{formatDateTime(row.createdAt)}</TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      <CircularProgress />
+                    </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          component="div"
-          count={data.meta.totalDocs}
-          rowsPerPage={10}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPageOptions={[]}
-          labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
-        />
-      </Paper>
+                ) : (
+                  data.networkSuppliers.map((row) => (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
+                      <TableCell>
+                        {hasPermission(PERMISSIONS.NETWORK_SUPPLIER.UPDATE) && (
+                          <IconButton 
+                            color="primary" 
+                            onClick={() => handleEdit(row._id || row.id)}
+                            size="small"
+                          >
+                            <IconEdit size={18} />
+                          </IconButton>
+                        )}
+                        {hasPermission(PERMISSIONS.NETWORK_SUPPLIER.DELETE) && (
+                          <IconButton 
+                            color="error" 
+                            onClick={() => handleDeleteClick(row._id || row.id)}
+                            size="small"
+                          >
+                            <IconTrash size={18} />
+                          </IconButton>
+                        )}
+                      </TableCell>
+                      <TableCell>{row.name}</TableCell>
+                      <TableCell>{row.company}</TableCell>
+                      <TableCell>{maskPhoneNumber(row.phone)}</TableCell>
+                      <TableCell>
+                        <Link to={row.website} target="_blank" rel="noopener noreferrer">
+                          {extractDomain(row.website)}
+                        </Link>
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          maxWidth: 170,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {row.address}
+                      </TableCell>
+                      <TableCell>{formatDateTime(row.createdAt)}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component="div"
+            count={data.meta.totalDocs}
+            rowsPerPage={10}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPageOptions={[]}
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
+          />
+        </Paper>
+      ) : (
+        <Typography variant="h4">Bạn không có quyền xem danh sách nhà cung cấp mạng!</Typography>
+      )}
 
       <Dialog
         open={openDialog}
