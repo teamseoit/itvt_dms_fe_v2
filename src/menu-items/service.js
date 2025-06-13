@@ -46,7 +46,7 @@ const service = {
           id: 'content',
           title: 'Viết bài Content & PR',
           type: 'item',
-          url: '/goi-dich-vu/viet-bai-content-pr',
+          url: '/goi-dich-vu/viet-bai-content',
           breadcrumbs: true
         },
         {
@@ -124,7 +124,7 @@ const service = {
           id: 'content',
           title: 'Viết bài Content & PR',
           type: 'item',
-          url: '/dich-vu/viet-bai-content-pr',
+          url: '/dich-vu/viet-bai-content',
           breadcrumbs: true
         },
         {
