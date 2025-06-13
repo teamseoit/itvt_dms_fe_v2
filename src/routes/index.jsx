@@ -40,6 +40,8 @@ const DomainPlanList = Loadable(lazy(() => import('views/plans/domain/DomainPlan
 const DomainPlanAdd = Loadable(lazy(() => import('views/plans/domain/DomainPlanAdd.jsx')));
 const HostingPlanList = Loadable(lazy(() => import('views/plans/hosting/HostingPlanList.jsx')));
 const HostingPlanAdd = Loadable(lazy(() => import('views/plans/hosting/HostingPlanAdd.jsx')));
+const EmailPlanList = Loadable(lazy(() => import('views/plans/email/EmailPlanList.jsx')));
+const EmailPlanAdd = Loadable(lazy(() => import('views/plans/email/EmailPlanAdd.jsx')));
 
 function RootLayout() {
   const { isAuthenticated } = useAuth();
@@ -242,6 +244,18 @@ const router = createBrowserRouter([
               {
                 path: 'hosting/:id',
                 element: <HostingPlanAdd />
+              },
+              {
+                path: 'email',
+                element: <EmailPlanList />
+              },
+              {
+                path: 'email/them-moi',
+                element: <EmailPlanAdd />
+              },
+              {
+                path: 'email/:id',
+                element: <EmailPlanAdd />
               }
             ]
           },
