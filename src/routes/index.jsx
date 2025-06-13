@@ -46,6 +46,8 @@ const SSLPlanList = Loadable(lazy(() => import('views/plans/ssl/SSLPlanList.jsx'
 const SSLPlanAdd = Loadable(lazy(() => import('views/plans/ssl/SSLPlanAdd.jsx')));
 const ContentPlanList = Loadable(lazy(() => import('views/plans/content/ContentPlanList.jsx')));
 const ContentPlanAdd = Loadable(lazy(() => import('views/plans/content/ContentPlanAdd.jsx')));
+const ToplistPlanList = Loadable(lazy(() => import('views/plans/toplist/ToplistPlanList.jsx')));
+const ToplistPlanAdd = Loadable(lazy(() => import('views/plans/toplist/ToplistPlanAdd.jsx')));
 const MaintenancePlanList = Loadable(lazy(() => import('views/plans/maintenance/MaintenancePlanList.jsx')));
 const MaintenancePlanAdd = Loadable(lazy(() => import('views/plans/maintenance/MaintenancePlanAdd.jsx')));
 const NetworkPlanList = Loadable(lazy(() => import('views/plans/network/NetworkPlanList.jsx')));
@@ -290,6 +292,18 @@ const router = createBrowserRouter([
               {
                 path: 'viet-bai-content/:id',
                 element: <ContentPlanAdd />
+              },
+              {
+                path: 'toplist-vung-tau',
+                element: <ToplistPlanList />
+              },
+              {
+                path: 'toplist-vung-tau/them-moi',
+                element: <ToplistPlanAdd />
+              },
+              {
+                path: 'toplist-vung-tau/:id',
+                element: <ToplistPlanAdd />
               },
               {
                 path: 'bao-tri',
