@@ -46,6 +46,8 @@ const SSLPlanList = Loadable(lazy(() => import('views/plans/ssl/SSLPlanList.jsx'
 const SSLPlanAdd = Loadable(lazy(() => import('views/plans/ssl/SSLPlanAdd.jsx')));
 const ContentPlanList = Loadable(lazy(() => import('views/plans/content/ContentPlanList.jsx')));
 const ContentPlanAdd = Loadable(lazy(() => import('views/plans/content/ContentPlanAdd.jsx')));
+const MaintenancePlanList = Loadable(lazy(() => import('views/plans/maintenance/MaintenancePlanList.jsx')));
+const MaintenancePlanAdd = Loadable(lazy(() => import('views/plans/maintenance/MaintenancePlanAdd.jsx')));
 
 function RootLayout() {
   const { isAuthenticated } = useAuth();
@@ -284,6 +286,18 @@ const router = createBrowserRouter([
               {
                 path: 'viet-bai-content/:id',
                 element: <ContentPlanAdd />
+              },
+              {
+                path: 'bao-tri',
+                element: <MaintenancePlanList />
+              },
+              {
+                path: 'bao-tri/them-moi',
+                element: <MaintenancePlanAdd />
+              },
+              {
+                path: 'bao-tri/:id',
+                element: <MaintenancePlanAdd />
               }
             ]
           },
