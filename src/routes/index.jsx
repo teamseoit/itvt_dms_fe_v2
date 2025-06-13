@@ -50,6 +50,8 @@ const MaintenancePlanList = Loadable(lazy(() => import('views/plans/maintenance/
 const MaintenancePlanAdd = Loadable(lazy(() => import('views/plans/maintenance/MaintenancePlanAdd.jsx')));
 const NetworkPlanList = Loadable(lazy(() => import('views/plans/network/NetworkPlanList.jsx')));
 const NetworkPlanAdd = Loadable(lazy(() => import('views/plans/network/NetworkPlanAdd.jsx')));
+const ServerPlanList = Loadable(lazy(() => import('views/plans/server/ServerPlanList.jsx')));
+const ServerPlanAdd = Loadable(lazy(() => import('views/plans/server/ServerPlanAdd.jsx')));
 
 function RootLayout() {
   const { isAuthenticated } = useAuth();
@@ -312,6 +314,18 @@ const router = createBrowserRouter([
               {
                 path: 'nha-mang/:id',
                 element: <NetworkPlanAdd />
+              },
+              {
+                path: 'server',
+                element: <ServerPlanList />
+              },
+              {
+                path: 'server/them-moi',
+                element: <ServerPlanAdd />
+              },
+              {
+                path: 'server/:id',
+                element: <ServerPlanAdd />
               },
             ]
           },
