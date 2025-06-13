@@ -48,6 +48,8 @@ const ContentPlanList = Loadable(lazy(() => import('views/plans/content/ContentP
 const ContentPlanAdd = Loadable(lazy(() => import('views/plans/content/ContentPlanAdd.jsx')));
 const MaintenancePlanList = Loadable(lazy(() => import('views/plans/maintenance/MaintenancePlanList.jsx')));
 const MaintenancePlanAdd = Loadable(lazy(() => import('views/plans/maintenance/MaintenancePlanAdd.jsx')));
+const NetworkPlanList = Loadable(lazy(() => import('views/plans/network/NetworkPlanList.jsx')));
+const NetworkPlanAdd = Loadable(lazy(() => import('views/plans/network/NetworkPlanAdd.jsx')));
 
 function RootLayout() {
   const { isAuthenticated } = useAuth();
@@ -298,7 +300,19 @@ const router = createBrowserRouter([
               {
                 path: 'bao-tri/:id',
                 element: <MaintenancePlanAdd />
-              }
+              },
+              {
+                path: 'nha-mang',
+                element: <NetworkPlanList />
+              },
+              {
+                path: 'nha-mang/them-moi',
+                element: <NetworkPlanAdd />
+              },
+              {
+                path: 'nha-mang/:id',
+                element: <NetworkPlanAdd />
+              },
             ]
           },
         ]
