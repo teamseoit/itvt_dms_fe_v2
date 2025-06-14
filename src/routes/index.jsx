@@ -55,6 +55,10 @@ const NetworkPlanAdd = Loadable(lazy(() => import('views/plans/network/NetworkPl
 const ServerPlanList = Loadable(lazy(() => import('views/plans/server/ServerPlanList.jsx')));
 const ServerPlanAdd = Loadable(lazy(() => import('views/plans/server/ServerPlanAdd.jsx')));
 
+// Service Management
+const DomainServiceList = Loadable(lazy(() => import('views/services/domain/DomainServiceList.jsx')));
+const DomainServiceAdd = Loadable(lazy(() => import('views/services/domain/DomainServiceAdd.jsx')));
+
 function RootLayout() {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <MainLayout /> : <MinimalLayout />;
@@ -340,6 +344,23 @@ const router = createBrowserRouter([
               {
                 path: 'server/:id',
                 element: <ServerPlanAdd />
+              },
+            ]
+          },
+          {
+            path: 'dich-vu',
+            children: [
+              {
+                path: 'ten-mien',
+                element: <DomainServiceList />
+              },
+              {
+                path: 'ten-mien/them-moi',
+                element: <DomainServiceAdd />
+              },
+              {
+                path: 'ten-mien/:id',
+                element: <DomainServiceAdd />
               },
             ]
           },

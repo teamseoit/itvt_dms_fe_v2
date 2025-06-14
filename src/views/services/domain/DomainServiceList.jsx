@@ -22,24 +22,24 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
-import DOMAIN_PLAN_API from '../../../services/plans/domainPlanService';
+import DOMAIN_SERVICE_API from '../../../services/services/domainServiceService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
-import { formatDateTime, formatPrice } from '../../../utils/formatConstants';
+import { formatDateTime, formatDate, formatPrice, maskPhoneNumber } from '../../../utils/formatConstants';
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
-  { id: 'name', label: 'Tên gói', minWidth: 200 },
-  { id: 'extension', label: 'Đuôi tên miền', minWidth: 140 },
-  { id: 'purchasePrice', label: 'Giá nhập', minWidth: 120 },
-  { id: 'retailPrice', label: 'Giá bán', minWidth: 120 },
-  { id: 'renewalPrice', label: 'Giá gia hạn', minWidth: 120 },
-  { id: 'supplier', label: 'Nhà cung cấp', minWidth: 200 },
-  { id: 'isActive', label: 'Trạng thái', minWidth: 140 },
+  { id: 'name', label: 'Tên dịch vụ', minWidth: 150 },
+  { id: 'customer', label: 'Khách hàng', minWidth: 200 },
+  { id: 'period', label: 'Thời hạn', minWidth: 100 },
+  { id: 'totalPrice', label: 'Tổng tiền', minWidth: 120 },
+  { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 160 },
+  { id: 'expiredAt', label: 'Ngày hết hạn', minWidth: 160 },
+  { id: 'status', label: 'Trạng thái', minWidth: 200 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 200 }
 ];
 
-export default function DomainPlanList() {
+export default function DomainServiceList() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
@@ -47,7 +47,7 @@ export default function DomainPlanList() {
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({
-    domainPlan: [],
+    domainServices: [],
     meta: {
       page: 1,
       limit: 10,
@@ -58,25 +58,25 @@ export default function DomainPlanList() {
 
   const { hasPermission } = usePermissions();
 
-  const fetchDomainPlan = async (pageNumber = 1) => {
+  const fetchDomainServices = async (pageNumber = 1) => {
     try {
       setLoading(true);
-      const response = await DOMAIN_PLAN_API.getAll({ page: pageNumber, limit: 10 });
+      const response = await DOMAIN_SERVICE_API.getAll({ page: pageNumber, limit: 10 });
       if (response.data.success) {
         setData({
-          domainPlan: response.data.data,
+          domainServices: response.data.data,
           meta: response.data.meta
         });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách gói dịch vụ tên miền');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách dịch vụ tên miền');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDomainPlan(page + 1);
+    fetchDomainServices(page + 1);
   }, [page]);
 
   const handleChangePage = (event, newPage) => {
@@ -84,11 +84,11 @@ export default function DomainPlanList() {
   };
 
   const handleAdd = () => {
-    navigate('/goi-dich-vu/ten-mien/them-moi');
+    navigate('/dich-vu/ten-mien/them-moi');
   };
 
   const handleEdit = (id) => {
-    navigate(`/goi-dich-vu/ten-mien/${id}`);
+    navigate(`/dich-vu/ten-mien/${id}`);
   };
 
   const handleDeleteClick = (id) => {
@@ -99,13 +99,13 @@ export default function DomainPlanList() {
   const handleDeleteConfirm = async () => {
     try {
       setLoading(true);
-      const response = await DOMAIN_PLAN_API.delete(deleteId);
+      const response = await DOMAIN_SERVICE_API.delete(deleteId);
       if (response.data.success) {
-        toast.success('Xóa gói dịch vụ tên miền thành công');
-        fetchDomainPlan(page + 1);
+        toast.success('Xóa dịch vụ tên miền thành công');
+        fetchDomainServices(page + 1);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa gói dịch vụ tên miền');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa dịch vụ tên miền');
     } finally {
       setLoading(false);
       setOpenDialog(false);
@@ -118,11 +118,37 @@ export default function DomainPlanList() {
     setDeleteId(null);
   };
 
+  const getStatusText = (status) => {
+    switch (status) {
+      case 1:
+        return 'Hoạt động';
+      case 2:
+        return 'Sắp hết hạn';
+      case 3:
+        return 'Hết hạn';
+      default:
+        return '';
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 1:
+        return '#4caf50';
+      case 0:
+        return '#ff9800';
+      case -1:
+        return '#f44336';
+      default:
+        return '#9e9e9e';
+    }
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h3">Danh sách gói dịch vụ tên miền</Typography>
-        {hasPermission(PERMISSIONS.DOMAIN_PLAN.ADD) && (
+        <Typography variant="h3">Danh sách dịch vụ tên miền</Typography>
+        {hasPermission(PERMISSIONS.DOMAIN_SERVICE.ADD) && (
           <Button
             variant="contained"
             startIcon={<IconPlus />}
@@ -134,10 +160,10 @@ export default function DomainPlanList() {
         )}
       </Box>
 
-      {hasPermission(PERMISSIONS.DOMAIN_PLAN.VIEW) ? (
+      {hasPermission(PERMISSIONS.DOMAIN_SERVICE.VIEW) ? (
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer>
-          <Table stickyHeader aria-label="bảng gói dịch vụ tên miền">
+          <Table stickyHeader aria-label="bảng dịch vụ tên miền">
             <TableHead>
               <TableRow>
                 {columns.map((column) => (
@@ -155,15 +181,15 @@ export default function DomainPlanList() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={10} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : (
-                data.domainPlan.map((row) => (
+                data.domainServices.map((row) => (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                     <TableCell>
-                      {hasPermission(PERMISSIONS.DOMAIN_PLAN.UPDATE) && (
+                      {hasPermission(PERMISSIONS.DOMAIN_SERVICE.UPDATE) && (
                         <IconButton 
                           color="primary" 
                           onClick={() => handleEdit(row._id || row.id)}
@@ -172,7 +198,7 @@ export default function DomainPlanList() {
                           <IconEdit size={18} />
                         </IconButton>
                       )}
-                      {hasPermission(PERMISSIONS.DOMAIN_PLAN.DELETE) && (
+                      {hasPermission(PERMISSIONS.DOMAIN_SERVICE.DELETE) && (
                         <IconButton 
                           color="error" 
                           onClick={() => handleDeleteClick(row._id || row.id)}
@@ -183,11 +209,11 @@ export default function DomainPlanList() {
                       )}
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.extension}</TableCell>
-                    <TableCell>{formatPrice(row.purchasePrice)}</TableCell>
-                    <TableCell>{formatPrice(row.retailPrice)}</TableCell>
-                    <TableCell>{formatPrice(row.renewalPrice)}</TableCell>
-                    <TableCell>{row.supplier?.company}</TableCell>
+                    <TableCell>{row.customer?.fullName} <br/>{maskPhoneNumber(row.customer?.phoneNumber)}</TableCell>
+                    <TableCell>{row.periodValue} {row.periodUnit}</TableCell>
+                    <TableCell>{formatPrice(row.totalPrice)}</TableCell>
+                    <TableCell>{row.registeredAt ? formatDate(row.registeredAt) : 'N/A'}</TableCell>
+                    <TableCell>{row.expiredAt ? formatDate(row.expiredAt) : 'N/A'}</TableCell>
                     <TableCell>
                       <Button
                         variant="contained"
@@ -197,13 +223,13 @@ export default function DomainPlanList() {
                           textTransform: 'none',
                           fontWeight: 500,
                           boxShadow: 'none',
-                          backgroundColor: row.isActive ? '#4caf50' : '#f44336',
+                          backgroundColor: getStatusColor(row.status),
                           '&:hover': {
-                            backgroundColor: row.isActive ? '#4caf50' : '#f44336',
+                            backgroundColor: getStatusColor(row.status),
                           },
                         }}
                       >
-                        {row.isActive ? 'Hoạt động' : 'Đã hủy'}
+                        {getStatusText(row.status)}
                       </Button>
                     </TableCell>
                     <TableCell>{formatDateTime(row.createdAt)}</TableCell>
@@ -226,7 +252,7 @@ export default function DomainPlanList() {
       ) : (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="h6" color="error">
-            Bạn không có quyền xem danh sách gói dịch vụ tên miền
+            Bạn không có quyền xem danh sách dịch vụ tên miền
           </Typography>
         </Paper>
       )}
@@ -242,7 +268,7 @@ export default function DomainPlanList() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="dialog-description">
-            Bạn có chắc chắn muốn xóa gói dịch vụ tên miền này không?
+            Bạn có chắc chắn muốn xóa dịch vụ tên miền này không?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -256,4 +282,4 @@ export default function DomainPlanList() {
       </Dialog>
     </Box>
   );
-}
+} 
