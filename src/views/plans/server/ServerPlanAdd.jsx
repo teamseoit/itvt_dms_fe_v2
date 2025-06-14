@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import {
   Box, Button, Typography, Paper, TextField,
-  FormControl, InputLabel, Select, MenuItem, Switch
+  FormControl, InputLabel, Select, MenuItem, Switch, Stack, Chip
 } from '@mui/material';
 import { IconArrowLeft } from '@tabler/icons-react';
 
@@ -32,9 +32,12 @@ export default function ServerPlanAdd() {
     purchasePrice: '',
     retailPrice: '',
     durationInMonths: 1,
+    ipAddress: [],
     description: '',
     supplier: ''
   });
+
+  const [ipAddressInput, setIpAddressInput] = useState('');
 
   const { hasPermission } = usePermissions();
 
@@ -53,6 +56,39 @@ export default function ServerPlanAdd() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleIpAddressInputChange = (e) => {
+    setIpAddressInput(e.target.value);
+  };
+
+  const handleAddIpAddress = () => {
+    const trimmedInput = ipAddressInput.trim();
+    if (trimmedInput) {
+      if (formData.ipAddress.includes(trimmedInput)) {
+        toast.error('Địa chỉ IP này đã tồn tại');
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          ipAddress: [...prev.ipAddress, trimmedInput]
+        }));
+        setIpAddressInput('');
+      }
+    }
+  };
+
+  const handleRemoveIpAddress = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      ipAddress: prev.ipAddress.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddIpAddress();
+    }
   };
 
   const fetchServerSupplier = async () => {
@@ -80,6 +116,7 @@ export default function ServerPlanAdd() {
           purchasePrice: formatCurrencyInput(serverPlanData.purchasePrice?.toString() || '0'),
           retailPrice: formatCurrencyInput(serverPlanData.retailPrice?.toString() || '0'),
           durationInMonths: serverPlanData.durationInMonths || 1,
+          ipAddress: serverPlanData.ipAddress || [],
           description: serverPlanData.description || '',
           supplier: serverPlanData.supplier?._id || serverPlanData.supplier || ''
         });
@@ -145,6 +182,7 @@ export default function ServerPlanAdd() {
         purchasePrice: parseCurrency(formData.purchasePrice),
         retailPrice: parseCurrency(formData.retailPrice),
         durationInMonths: parseInt(formData.durationInMonths),
+        ipAddress: formData.ipAddress,
         description: formData.description,
         supplier: formData.supplier
       };
@@ -263,6 +301,39 @@ export default function ServerPlanAdd() {
             inputProps={{ min: 1 }}
             sx={{ mb: 3 }}
           />
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              Địa chỉ IP
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <TextField
+                fullWidth
+                label="Thêm địa chỉ IP"
+                value={ipAddressInput}
+                onChange={handleIpAddressInputChange}
+                onKeyPress={handleKeyPress}
+                size="small"
+              />
+              <Button
+                variant="contained"
+                onClick={handleAddIpAddress}
+                disabled={!ipAddressInput.trim()}
+              >
+                Thêm
+              </Button>
+            </Box>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              {formData.ipAddress.map((ipAddress, index) => (
+                <Chip
+                  key={index}
+                  label={ipAddress}
+                  onDelete={() => handleRemoveIpAddress(index)}
+                  color="primary"
+                  variant="outlined"
+                />
+              ))}
+            </Stack>
+          </Box>
           <TextField
             fullWidth
             label="Mô tả"
