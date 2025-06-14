@@ -27,6 +27,7 @@ export default function DomainServiceAdd() {
   const [customers, setCustomers] = useState([]);
   const [domainPlans, setDomainPlans] = useState([]);
   const [serverPlans, setServerPlans] = useState([]);
+  const [originalServerPlanId, setOriginalServerPlanId] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     periodValue: '',
@@ -100,13 +101,21 @@ export default function DomainServiceAdd() {
       const response = await DOMAIN_SERVICE_API.getById(id);
       if (response.data.success) {
         const domainServiceData = response.data.data;
+        
+        let serverPlanValue = '';
+        if (domainServiceData.serverPlan) {
+          const serverPlanId = domainServiceData.serverPlan?._id || domainServiceData.serverPlan;
+          setOriginalServerPlanId(serverPlanId);
+          serverPlanValue = serverPlanId;
+        }
+        
         setFormData({
           name: domainServiceData.name || '',
           periodValue: domainServiceData.periodValue?.toString() || '',
           periodUnit: domainServiceData.periodUnit || 'năm',
           customer: domainServiceData.customer?._id || domainServiceData.customer || '',
           domainPlan: domainServiceData.domainPlan?._id || domainServiceData.domainPlan || '',
-          serverPlan: domainServiceData.serverPlan?._id || domainServiceData.serverPlan || '',
+          serverPlan: serverPlanValue,
           vatIncluded: domainServiceData.vatIncluded ?? false,
           unitPrice: formatCurrencyInput(domainServiceData.unitPrice?.toString() || '0'),
           totalPrice: formatCurrencyInput(domainServiceData.totalPrice?.toString() || '0'),
@@ -130,6 +139,18 @@ export default function DomainServiceAdd() {
       fetchDomainService();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (isEdit && serverPlans.length > 0 && originalServerPlanId && !formData.serverPlan.includes(':')) {
+      const serverPlan = serverPlans.find(plan => plan._id === originalServerPlanId);
+      if (serverPlan && serverPlan.ipAddress.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          serverPlan: `${serverPlan._id}:${serverPlan.ipAddress[0]}`
+        }));
+      }
+    }
+  }, [serverPlans, isEdit, originalServerPlanId]);
 
   const validateForm = () => {
     if (!formData.name.trim()) {
@@ -171,13 +192,19 @@ export default function DomainServiceAdd() {
 
     try {
       setLoading(true);
+      
+      // Extract server plan ID from the combined value (format: "serverPlanId:ipAddress")
+      const serverPlanId = formData.serverPlan.includes(':') 
+        ? formData.serverPlan.split(':')[0] 
+        : formData.serverPlan;
+
       const domainServiceData = {
         name: formData.name,
         periodValue: parseInt(formData.periodValue),
         periodUnit: formData.periodUnit,
         customer: formData.customer,
         domainPlan: formData.domainPlan || null,
-        serverPlan: formData.serverPlan || null,
+        serverPlan: serverPlanId || null,
         vatIncluded: formData.vatIncluded,
         unitPrice: parseCurrency(formData.unitPrice),
         totalPrice: parseCurrency(formData.totalPrice),
@@ -294,19 +321,21 @@ export default function DomainServiceAdd() {
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel id="server-plan-label">Gói server</InputLabel>
+            <InputLabel id="server-plan-label">Địa chỉ IP</InputLabel>
             <Select
               labelId="server-plan-label"
               name="serverPlan"
               value={formData.serverPlan}
               onChange={handleChange}
-              label="Gói server"
+              label="Địa chỉ IP"
             >
-              {serverPlans.map((plan) => (
-                <MenuItem key={plan._id} value={plan._id}>
-                  {plan.name}
-                </MenuItem>
-              ))}
+              {serverPlans.map((plan) => 
+                plan.ipAddress.map((ip, index) => (
+                  <MenuItem key={`${plan._id}-${index}`} value={`${plan._id}:${ip}`}>
+                    {ip} - {plan.name}
+                  </MenuItem>
+                ))
+              )}
             </Select>
           </FormControl>
 {/* 
@@ -339,6 +368,7 @@ export default function DomainServiceAdd() {
               value={formData.registeredAt}
               onChange={handleChange}
               InputLabelProps={{ shrink: true }}
+              disabled={isEdit}
             />
             {isEdit && <TextField
               fullWidth

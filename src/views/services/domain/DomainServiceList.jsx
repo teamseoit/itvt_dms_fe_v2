@@ -33,9 +33,10 @@ const columns = [
   { id: 'customer', label: 'Khách hàng', minWidth: 200 },
   { id: 'period', label: 'Thời hạn', minWidth: 100 },
   { id: 'totalPrice', label: 'Tổng tiền', minWidth: 120 },
+  { id: 'ipAddress', label: 'Địa chỉ IP', minWidth: 150 },
   { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 160 },
   { id: 'expiredAt', label: 'Ngày hết hạn', minWidth: 160 },
-  { id: 'status', label: 'Trạng thái', minWidth: 200 },
+  { id: 'status', label: 'Trạng thái', minWidth: 250 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 200 }
 ];
 
@@ -118,14 +119,14 @@ export default function DomainServiceList() {
     setDeleteId(null);
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status, statusText) => {
     switch (status) {
       case 1:
-        return 'Hoạt động';
+        return statusText;
       case 2:
-        return 'Sắp hết hạn';
+        return statusText;
       case 3:
-        return 'Hết hạn';
+        return statusText;
       default:
         return '';
     }
@@ -135,13 +136,29 @@ export default function DomainServiceList() {
     switch (status) {
       case 1:
         return '#4caf50';
-      case 0:
+      case 2:
         return '#ff9800';
-      case -1:
+      case 3:
         return '#f44336';
       default:
         return '#9e9e9e';
     }
+  };
+
+  const getIpAddress = (serverPlan) => {
+    if (!serverPlan) return 'N/A';
+    
+    // If serverPlan has ipAddress array, return the first IP
+    if (serverPlan.ipAddress && Array.isArray(serverPlan.ipAddress) && serverPlan.ipAddress.length > 0) {
+      return serverPlan.ipAddress[0];
+    }
+    
+    // If serverPlan is just an ID string, return N/A
+    if (typeof serverPlan === 'string') {
+      return 'N/A';
+    }
+    
+    return 'N/A';
   };
 
   return (
@@ -212,6 +229,7 @@ export default function DomainServiceList() {
                     <TableCell>{row.customer?.fullName} <br/>{maskPhoneNumber(row.customer?.phoneNumber)}</TableCell>
                     <TableCell>{row.periodValue} {row.periodUnit}</TableCell>
                     <TableCell>{formatPrice(row.totalPrice)}</TableCell>
+                    <TableCell>{getIpAddress(row.serverPlan)}</TableCell>
                     <TableCell>{row.registeredAt ? formatDate(row.registeredAt) : 'N/A'}</TableCell>
                     <TableCell>{row.expiredAt ? formatDate(row.expiredAt) : 'N/A'}</TableCell>
                     <TableCell>
@@ -229,7 +247,7 @@ export default function DomainServiceList() {
                           },
                         }}
                       >
-                        {getStatusText(row.status)}
+                        {getStatusText(row.status, row.statusText)}
                       </Button>
                     </TableCell>
                     <TableCell>{formatDateTime(row.createdAt)}</TableCell>
