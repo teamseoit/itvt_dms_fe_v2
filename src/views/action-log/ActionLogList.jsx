@@ -15,6 +15,8 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import ACTION_LOG_API from '../../services/actionLogService';
+import usePermissions from '../../hooks/usePermissions';
+import { PERMISSIONS } from '../../constants/permissions';
 import { formatDateTime } from '../../utils/formatConstants';
 
 const columns = [
@@ -36,6 +38,8 @@ export default function ActionLogList() {
       totalPages: 0
     }
   });
+
+  const { hasPermission } = usePermissions();
 
   const fetchActionLogs = async (pageNumber = 1) => {
     try {
@@ -68,6 +72,7 @@ export default function ActionLogList() {
         <Typography variant="h3">Lịch sử thao tác</Typography>
       </Box>
 
+      {hasPermission(PERMISSIONS.ACTION_LOG.VIEW) ? (
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer>
           <Table stickyHeader aria-label="bảng tài khoản">
@@ -122,6 +127,9 @@ export default function ActionLogList() {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
         />
       </Paper>
+      ) : (
+        <Typography variant="h4">Bạn không có quyền xem lịch sử thao tác!</Typography>
+      )}
     </Box>
   );
 }

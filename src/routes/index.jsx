@@ -27,6 +27,9 @@ const CustomerAdd = Loadable(lazy(() => import('views/customer/CustomerAdd')));
 // Action Log Management
 const ActionLogList = Loadable(lazy(() => import('views/action-log/ActionLogList')));
 
+// IP Whitelist Management
+const IpWhitelistList = Loadable(lazy(() => import('views/ip-whitelist/IpWhitelistList')));
+
 // Supplier Management
 const ServiceSupplierList = Loadable(lazy(() => import('views/supplier/service/ServiceSupplierList')));
 const ServiceSupplierAdd = Loadable(lazy(() => import('views/supplier/service/ServiceSupplierAdd')));
@@ -141,6 +144,10 @@ const router = createBrowserRouter([
           {
             path: 'lich-su-thao-tac',
             element: <ActionLogList />
+          },
+          {
+            path: 'danh-sach-ip',
+            element: <IpWhitelistList />
           },
           {
             path: 'nhom-quyen',

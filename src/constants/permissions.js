@@ -16,6 +16,18 @@ export const PERMISSIONS = {
     DELETE: '66746193cb45907845239f4a'
   },
 
+  // Action log permissions
+  ACTION_LOG: {
+    VIEW: '643263d04bede188dfb46d79'
+  },
+
+  // IP whitelist permissions
+  IP_WHITELIST: {
+    VIEW: '643263d04bede188fff66d76',
+    ADD: '643263d04bede188dff66d76',
+    DELETE: '643263d04bede188dff67d76'
+  },
+
   // Customer permissions
   CUSTOMER: {
     VIEW: '667463d04bede188dfb46f7f',

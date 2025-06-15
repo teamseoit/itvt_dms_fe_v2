@@ -6,9 +6,10 @@ import itvt from './itvt';
 import service from './service';
 import contract from './contract';
 import storage from './storage';
+import ipWhitelist from './ipWhitelist';
 
 const menuItems = {
-  items: [dashboard, account, customer, supplier, service, itvt, contract, storage]
+  items: [dashboard, ipWhitelist, account, customer, supplier, service, itvt, contract, storage]
 };
 
 export default menuItems;
