@@ -1,7 +1,7 @@
 import axios from '../../api/axios';
 
 const DOMAIN_PLAN_API = {
-  getAll: (params = { page: 1, limit: 10 }) => {
+  getAll: (params = { page: 1, limit: 10, nameAction: '' }) => {
     return axios.get('/plans/domain', { params });
   },
 

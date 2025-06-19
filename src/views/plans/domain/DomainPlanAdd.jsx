@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import {
   Box, Button, Typography, Paper, TextField,
-  FormControl, InputLabel, Select, MenuItem, Switch
+  FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import { IconArrowLeft } from '@tabler/icons-react';
 
@@ -24,14 +24,12 @@ export default function DomainPlanAdd() {
   const [loading, setLoading] = useState(false);
   const [serviceSupplier, setServiceSupplier] = useState([]);
   const [formData, setFormData] = useState({
-    name: '',
     extension: '',
+    nameAction: '',
     purchasePrice: '',
     retailPrice: '',
-    renewalPrice: '',
-    registrationYears: 1,
-    supplier: '',
-    isActive: true
+    vat: '',
+    supplierId: ''
   });
 
   const { hasPermission } = usePermissions();
@@ -46,10 +44,10 @@ export default function DomainPlanAdd() {
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
   };
 
@@ -70,14 +68,12 @@ export default function DomainPlanAdd() {
       if (response.data.success) {
         const domainPlanData = response.data.data;
         setFormData({
-          name: domainPlanData.name || '',
           extension: domainPlanData.extension || '',
+          nameAction: domainPlanData.nameAction || '',
           purchasePrice: formatCurrencyInput(domainPlanData.purchasePrice?.toString() || '0'),
           retailPrice: formatCurrencyInput(domainPlanData.retailPrice?.toString() || '0'),
-          renewalPrice: formatCurrencyInput(domainPlanData.renewalPrice?.toString() || '0'),
-          registrationYears: domainPlanData.registrationYears || 1,
-          supplier: domainPlanData.supplier?._id || domainPlanData.supplier || '',
-          isActive: domainPlanData.isActive ?? true
+          vat: domainPlanData.vat || 0,
+          supplierId: domainPlanData.supplierId?._id || ''
         });
       }
     } catch (error) {
@@ -94,18 +90,18 @@ export default function DomainPlanAdd() {
   }, [id]);
 
   const validateForm = () => {
-    if (!formData.name.trim()) {
-      toast.error('Vui lòng nhập tên gói');
-      return false;
-    }
-
     if (!formData.extension.trim()) {
       toast.error('Vui lòng nhập đuôi tên miền');
       return false;
     }
 
+    if (!formData.nameAction) {
+      toast.error('Vui lòng chọn hành động');
+      return false;
+    }
+
     if (!formData.purchasePrice) {
-      toast.error('Vui lòng nhập giá nhập');
+      toast.error('Vui lòng nhập giá vốn');
       return false;
     }
 
@@ -114,12 +110,7 @@ export default function DomainPlanAdd() {
       return false;
     }
 
-    if (!formData.renewalPrice) {
-      toast.error('Vui lòng nhập giá gia hạn');
-      return false;
-    }
-
-    if (!formData.supplier) {
+    if (!formData.supplierId) {
       toast.error('Vui lòng chọn nhà cung cấp');
       return false;
     }
@@ -143,14 +134,12 @@ export default function DomainPlanAdd() {
     try {
       setLoading(true);
       const domainPlanData = {
-        name: formData.name,
         extension: formData.extension,
+        nameAction: formData.nameAction,
         purchasePrice: parseCurrency(formData.purchasePrice),
         retailPrice: parseCurrency(formData.retailPrice),
-        renewalPrice: parseCurrency(formData.renewalPrice),
-        registrationYears: Number(formData.registrationYears) || 1,
-        supplier: formData.supplier,
-        isActive: formData.isActive
+        vat: Number(formData.vat),
+        supplierId: formData.supplierId
       };
 
       const response = isEdit
@@ -194,15 +183,6 @@ export default function DomainPlanAdd() {
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Tên gói (*)"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            disabled={isEdit}
-            sx={{ mb: 3 }}
-          />
-          <TextField
-            fullWidth
             label="Đuôi tên miền (ví dụ: .com) (*)"
             name="extension"
             value={formData.extension}
@@ -210,9 +190,24 @@ export default function DomainPlanAdd() {
             disabled={isEdit}
             sx={{ mb: 3 }}
           />
+          <FormControl fullWidth sx={{ mb: 3 }}>
+            <InputLabel id="group-label">Hành động (*)</InputLabel>
+            <Select
+              labelId="group-label"
+              name="nameAction"
+              value={formData.nameAction}
+              onChange={handleChange}
+              disabled={isEdit}
+              label="Hành động (*)"
+            >
+              <MenuItem key="0" value="0">Đăng ký mới</MenuItem>
+              <MenuItem key="1" value="1">Duy trì</MenuItem>
+              <MenuItem key="2" value="2">Chuyển nhà đăng ký</MenuItem>
+            </Select>
+          </FormControl>
           <TextField
             fullWidth
-            label="Giá nhập (*)"
+            label="Giá vốn (*)"
             name="purchasePrice"
             value={formData.purchasePrice}
             onChange={handlePriceChange}
@@ -230,29 +225,19 @@ export default function DomainPlanAdd() {
           />
           <TextField
             fullWidth
-            label="Giá gia hạn hàng năm (*)"
-            name="renewalPrice"
-            value={formData.renewalPrice}
-            onChange={handlePriceChange}
-            sx={{ mb: 3 }}
-            inputProps={{ inputMode: 'numeric' }}
-          />
-          <TextField
-            fullWidth
-            label="Số năm đăng ký mặc định"
-            name="registrationYears"
-            type="number"
-            value={formData.registrationYears}
+            label="VAT (%)"
+            name="vat"
+            value={formData.vat}
             onChange={handleChange}
             sx={{ mb: 3 }}
-            inputProps={{ min: 1 }}
+            inputProps={{ inputMode: 'numeric' }}
           />
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="group-label">Nhà cung cấp (*)</InputLabel>
             <Select
               labelId="group-label"
-              name="supplier"
-              value={formData.supplier}
+              name="supplierId"
+              value={formData.supplierId}
               onChange={handleChange}
               disabled={isEdit}
               label="Nhà cung cấp (*)"
@@ -263,21 +248,6 @@ export default function DomainPlanAdd() {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
-          <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 3 }}>
-            <Typography component="span" sx={{ mr: 2 }}>
-              Hiển thị gói dịch vụ
-            </Typography>
-            <Switch
-              name="isActive"
-              checked={formData.isActive}
-              onChange={(e) =>
-                setFormData(prev => ({
-                  ...prev,
-                  isActive: e.target.checked
-                }))
-              }
-          />
           </FormControl>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
             <Button

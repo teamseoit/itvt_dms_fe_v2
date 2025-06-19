@@ -2,24 +2,30 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import IconButton from '@mui/material/IconButton';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-import CircularProgress from '@mui/material/CircularProgress';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  Typography,
+  CircularProgress,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
+} from '@mui/material';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import DOMAIN_PLAN_API from '../../../services/plans/domainPlanService';
@@ -29,13 +35,12 @@ import { formatDateTime, formatPrice } from '../../../utils/formatConstants';
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
-  { id: 'name', label: 'Tên gói', minWidth: 200 },
   { id: 'extension', label: 'Đuôi tên miền', minWidth: 140 },
-  { id: 'purchasePrice', label: 'Giá nhập', minWidth: 120 },
-  { id: 'retailPrice', label: 'Giá bán', minWidth: 120 },
-  { id: 'renewalPrice', label: 'Giá gia hạn', minWidth: 120 },
-  { id: 'supplier', label: 'Nhà cung cấp', minWidth: 200 },
-  { id: 'isActive', label: 'Trạng thái', minWidth: 140 },
+  { id: 'nameAction', label: 'Hàng động', minWidth: 180 },
+  { id: 'purchasePrice', label: 'Giá vốn', minWidth: 300 },
+  { id: 'retailPrice', label: 'Giá bán', minWidth: 160 },
+  { id: 'vat', label: 'VAT(%)', minWidth: 80 },
+  { id: 'supplier', label: 'Nhà cung cấp', minWidth: 160 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 200 }
 ];
 
@@ -46,6 +51,7 @@ export default function DomainPlanList() {
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [data, setData] = useState({
     domainPlan: [],
     meta: {
@@ -61,7 +67,7 @@ export default function DomainPlanList() {
   const fetchDomainPlan = async (pageNumber = 1) => {
     try {
       setLoading(true);
-      const response = await DOMAIN_PLAN_API.getAll({ page: pageNumber, limit: 10 });
+      const response = await DOMAIN_PLAN_API.getAll({ page: pageNumber, limit: 10, nameAction: searchTerm });
       if (response.data.success) {
         setData({
           domainPlan: response.data.data,
@@ -77,7 +83,13 @@ export default function DomainPlanList() {
 
   useEffect(() => {
     fetchDomainPlan(page + 1);
-  }, [page]);
+  }, [page, searchTerm]);
+
+  const handleChange = (event) => {
+    const value = event.target.value;
+    setSearchTerm(value);
+    setPage(0);
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -133,96 +145,110 @@ export default function DomainPlanList() {
           </Button>
         )}
       </Box>
-
       {hasPermission(PERMISSIONS.DOMAIN_PLAN.VIEW) ? (
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer>
-          <Table stickyHeader aria-label="bảng gói dịch vụ tên miền">
-            <TableHead>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableCell
-                    key={column.id}
-                    align={column.align}
-                    style={{ minWidth: column.minWidth }}
-                    sx={{ backgroundColor: theme.palette.primary.light }}
-                  >
-                    {column.label}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data.domainPlan.map((row) => (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
-                    <TableCell>
-                      {hasPermission(PERMISSIONS.DOMAIN_PLAN.UPDATE) && (
-                        <IconButton 
-                          color="primary" 
-                          onClick={() => handleEdit(row._id || row.id)}
-                          size="small"
-                        >
-                          <IconEdit size={18} />
-                        </IconButton>
-                      )}
-                      {hasPermission(PERMISSIONS.DOMAIN_PLAN.DELETE) && (
-                        <IconButton 
-                          color="error" 
-                          onClick={() => handleDeleteClick(row._id || row.id)}
-                          size="small"
-                        >
-                          <IconTrash size={18} />
-                        </IconButton>
-                      )}
-                    </TableCell>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.extension}</TableCell>
-                    <TableCell>{formatPrice(row.purchasePrice)}</TableCell>
-                    <TableCell>{formatPrice(row.retailPrice)}</TableCell>
-                    <TableCell>{formatPrice(row.renewalPrice)}</TableCell>
-                    <TableCell>{row.supplier?.company}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        sx={{
-                          borderRadius: '5px',
-                          textTransform: 'none',
-                          fontWeight: 500,
-                          boxShadow: 'none',
-                          backgroundColor: row.isActive ? '#4caf50' : '#f44336',
-                          '&:hover': {
-                            backgroundColor: row.isActive ? '#4caf50' : '#f44336',
-                          },
-                        }}
+        <>
+          <FormControl sx={{ mb: 3, width: '200px', backgroundColor: 'white', borderRadius: '10px' }}>
+            <InputLabel id="action-type-label">Hành động</InputLabel>
+            <Select
+              labelId="action-type-label"
+              id="action-type-select" 
+              name="nameAction"
+              value={searchTerm}
+              onChange={handleChange}
+              label="Hành động"
+            >
+              <MenuItem value="">Tất cả</MenuItem>
+              {[
+                { value: "0", label: "Đăng ký mới" },
+                { value: "1", label: "Duy trì" }, 
+                { value: "2", label: "Chuyển nhà đăng ký" }
+              ].map(option => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+            <TableContainer>
+              <Table stickyHeader aria-label="bảng gói dịch vụ tên miền">
+                <TableHead>
+                  <TableRow>
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        align={column.align}
+                        style={{ minWidth: column.minWidth }}
+                        sx={{ backgroundColor: theme.palette.primary.light }}
                       >
-                        {row.isActive ? 'Hoạt động' : 'Đã hủy'}
-                      </Button>
-                    </TableCell>
-                    <TableCell>{formatDateTime(row.createdAt)}</TableCell>
+                        {column.label}
+                      </TableCell>
+                    ))}
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          component="div"
-          count={data.meta.totalDocs}
-          rowsPerPage={10}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPageOptions={[]}
-          labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
-        />
-      </Paper>
+                </TableHead>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">
+                        <CircularProgress />
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    data.domainPlan.map((row) => (
+                      <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
+                        <TableCell>
+                          {hasPermission(PERMISSIONS.DOMAIN_PLAN.UPDATE) && (
+                            <IconButton 
+                              color="primary" 
+                              onClick={() => handleEdit(row._id || row.id)}
+                              size="small"
+                            >
+                              <IconEdit size={18} />
+                            </IconButton>
+                          )}
+                          {hasPermission(PERMISSIONS.DOMAIN_PLAN.DELETE) && (
+                            <IconButton 
+                              color="error" 
+                              onClick={() => handleDeleteClick(row._id || row.id)}
+                              size="small"
+                            >
+                              <IconTrash size={18} />
+                            </IconButton>
+                          )}
+                        </TableCell>
+                        <TableCell>{row.extension}</TableCell>
+                        <TableCell>
+                          {row.nameAction == 0 ? 'Đăng ký mới' : row.nameAction == 1 ? 'Duy trì' : 'Chuyển nhà đăng ký'}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body1" fontWeight={600}>
+                            {formatPrice(row.purchasePrice)}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {row.vat > 0 ? `Giá đã bao gồm VAT: ${formatPrice(row.vatPrice)}` : `Giá chưa bao gồm VAT: ${formatPrice(row.purchasePrice)}`}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{formatPrice(row.retailPrice)}</TableCell>
+                        <TableCell>{row.vat}%</TableCell>
+                        <TableCell>{row.supplierId?.name}</TableCell>
+                        <TableCell>{formatDateTime(row.createdAt)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+              component="div"
+              count={data.meta.totalDocs}
+              rowsPerPage={10}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
+            />
+          </Paper>
+        </>
       ) : (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="h6" color="error">
