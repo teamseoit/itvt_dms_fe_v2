@@ -2,25 +2,34 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import IconButton from '@mui/material/IconButton';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-import CircularProgress from '@mui/material/CircularProgress';
-import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  Typography,
+  CircularProgress,
+  Collapse
+} from '@mui/material';
+import {
+  IconPlus,
+  IconEdit,
+  IconTrash,
+  IconChevronDown,
+  IconChevronUp
+} from '@tabler/icons-react';
 
 import EMAIL_PLAN_API from '../../../services/plans/emailPlanService';
 import usePermissions from '../../../hooks/usePermissions';
@@ -28,14 +37,17 @@ import { PERMISSIONS } from '../../../constants/permissions';
 import { formatDateTime, formatPrice } from '../../../utils/formatConstants';
 
 const columns = [
+  { id: 'info', label: 'Chi tiết', minWidth: 80 },
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
-  { id: 'name', label: 'Tên gói', minWidth: 120 },
-  { id: 'purchasePrice', label: 'Giá nhập', minWidth: 120 },
-  { id: 'retailPrice', label: 'Giá bán', minWidth: 120 },
-  { id: 'renewalPrice', label: 'Giá gia hạn', minWidth: 120 },
-  { id: 'supplier', label: 'Nhà cung cấp', minWidth: 200 },
-  { id: 'isActive', label: 'Trạng thái', minWidth: 80 },
-  { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
+  { id: 'name', label: 'Tên gói', minWidth: 200 },
+  { id: 'nameAction', label: 'Hành động', minWidth: 170 },
+  { id: 'dvt', label: 'ĐVT', minWidth: 50 },
+  { id: 'sl', label: 'SL', minWidth: 50 },
+  { id: 'vat', label: 'VAT(%)', minWidth: 80 },
+  { id: 'purchasePrice', label: 'Giá vốn', minWidth: 130 },
+  { id: 'retailPrice', label: 'Giá bán', minWidth: 130 },
+  { id: 'supplier', label: 'Nhà cung cấp', minWidth: 150 },
+  { id: 'createdAt', label: 'Ngày tạo', minWidth: 180 }
 ];
 
 export default function EmailPlanList() {
@@ -55,6 +67,7 @@ export default function EmailPlanList() {
     }
   });
 
+  const [openInfoId, setOpenInfoId] = useState(null);
   const { hasPermission } = usePermissions();
 
   const fetchEmailPlan = async (pageNumber = 1) => {
@@ -80,6 +93,10 @@ export default function EmailPlanList() {
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
+  };
+
+  const toggleCollapse = (id) => {
+    setOpenInfoId(prev => (prev === id ? null : id));
   };
 
   const handleAdd = () => {
@@ -159,54 +176,65 @@ export default function EmailPlanList() {
                   </TableCell>
                 </TableRow>
               ) : (
-                data.emailPlan.map((row) => (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
-                    <TableCell>
-                      {hasPermission(PERMISSIONS.EMAIL_PLAN.UPDATE) && (
-                        <IconButton 
-                          color="primary" 
-                          onClick={() => handleEdit(row._id || row.id)}
-                          size="small"
-                        >
-                          <IconEdit size={18} />
-                        </IconButton>
-                      )}
-                      {hasPermission(PERMISSIONS.EMAIL_PLAN.DELETE) && (
-                        <IconButton 
-                          color="error" 
-                          onClick={() => handleDeleteClick(row._id || row.id)}
-                          size="small"
-                        >
-                          <IconTrash size={18} />
-                        </IconButton>
-                      )}
-                    </TableCell>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{formatPrice(row.purchasePrice)}</TableCell>
-                    <TableCell>{formatPrice(row.retailPrice)}</TableCell>
-                    <TableCell>{formatPrice(row.renewalPrice)}</TableCell>
-                    <TableCell>{row.supplier?.company}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        sx={{
-                          borderRadius: '5px',
-                          textTransform: 'none',
-                          fontWeight: 500,
-                          boxShadow: 'none',
-                          backgroundColor: row.isActive ? '#4caf50' : '#f44336',
-                          '&:hover': {
-                            backgroundColor: row.isActive ? '#4caf50' : '#f44336',
-                          },
-                        }}
-                      >
-                        {row.isActive ? 'Hoạt động' : 'Đã hủy'}
-                      </Button>
-                    </TableCell>
-                    <TableCell>{formatDateTime(row.createdAt)}</TableCell>
-                  </TableRow>
-                ))
+                data.emailPlan.map((row) => {
+                  const isOpen = openInfoId === row._id;
+                  return (
+                    <>
+                      <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
+                        <TableCell>
+                          <IconButton size="small"onClick={() => toggleCollapse(row._id)}>
+                            {isOpen ? <IconChevronUp /> : <IconChevronDown />}
+                          </IconButton>
+                        </TableCell>
+                        <TableCell>
+                          {hasPermission(PERMISSIONS.EMAIL_PLAN.UPDATE) && (
+                            <IconButton 
+                              color="primary" 
+                              onClick={() => handleEdit(row._id || row.id)}
+                              size="small"
+                            >
+                              <IconEdit size={18} />
+                            </IconButton>
+                          )}
+                          {hasPermission(PERMISSIONS.EMAIL_PLAN.DELETE) && (
+                            <IconButton 
+                              color="error" 
+                              onClick={() => handleDeleteClick(row._id || row.id)}
+                              size="small"
+                            >
+                              <IconTrash size={18} />
+                            </IconButton>
+                          )}
+                        </TableCell>
+                        <TableCell>{row.name}</TableCell>
+                        <TableCell>
+                          {row.nameAction == 0 ? 'Đăng ký mới' : row.nameAction == 1 ? 'Duy trì' : 'Chuyển nhà đăng ký'}
+                        </TableCell>
+                        <TableCell>Tháng</TableCell>
+                        <TableCell>1</TableCell>
+                        <TableCell>{row.vat}%</TableCell>
+                        <TableCell>{formatPrice(row.purchasePrice)}</TableCell>
+                        <TableCell>{formatPrice(row.retailPrice)}</TableCell>
+                        <TableCell>{row.supplierId?.name}</TableCell>
+                        <TableCell>{formatDateTime(row.createdAt)}</TableCell>
+      
+                      </TableRow>
+                      <TableRow>
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={columns.length}>
+                          <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                            <Box margin={1}>
+                              <Typography variant="subtitle1">Chi tiết chi phí gói dịch vụ email</Typography>
+                              <Typography variant="body2">- Tổng giá vốn chưa VAT: {formatPrice(row.totalPurchaseWithoutVAT)} / năm</Typography>
+                              <Typography variant="body2">- Tổng giá vốn đã VAT: {formatPrice(row.totalPurchaseWithVAT)} / năm</Typography>
+                              <Typography variant="body2">- Tổng giá bán chưa VAT: {formatPrice(row.totalRetailWithoutVAT)} / năm</Typography>
+                              <Typography variant="body2">- Tổng giá bán đã VAT: {formatPrice(row.totalRetailWithVAT)} / năm</Typography>
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
+                    </>
+                  )
+                })
               )}
             </TableBody>
           </Table>
