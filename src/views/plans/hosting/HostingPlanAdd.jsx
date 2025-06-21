@@ -13,7 +13,7 @@ import SERVICE_SUPPLIER_API from '../../../services/serviceSupplierService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
 
-import { formatCurrencyInput, parseCurrency } from '../../../utils/formatConstants';
+import { formatCurrencyInput, formatPrice, parseCurrency } from '../../../utils/formatConstants';
 
 export default function HostingPlanAdd() {
   const theme = useTheme();
@@ -25,14 +25,12 @@ export default function HostingPlanAdd() {
   const [serviceSupplier, setServiceSupplier] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
+    description: '',
     purchasePrice: '',
-    retailPrice: '',
-    renewalPrice: '',
-    registrationYears: 1,
-    account: '',
-    capacity: '',
-    supplier: '',
-    isActive: true
+    vat: '',
+    vatPrice: '',
+    totalPrice: '',
+    supplierId: ''
   });
 
   const { hasPermission } = usePermissions();
@@ -72,14 +70,12 @@ export default function HostingPlanAdd() {
         const hostingPlanData = response.data.data;
         setFormData({
           name: hostingPlanData.name || '',
+          description: hostingPlanData.description || '',
           purchasePrice: formatCurrencyInput(hostingPlanData.purchasePrice?.toString() || '0'),
-          retailPrice: formatCurrencyInput(hostingPlanData.retailPrice?.toString() || '0'),
-          renewalPrice: formatCurrencyInput(hostingPlanData.renewalPrice?.toString() || '0'),
-          registrationYears: hostingPlanData.registrationYears || 1,
-          account: hostingPlanData.account || '',
-          capacity: hostingPlanData.capacity || '',
-          supplier: hostingPlanData.supplier?._id || hostingPlanData.supplier || '',
-          isActive: hostingPlanData.isActive ?? true
+          vat: hostingPlanData.vat || 0,
+          vatPrice: formatPrice(hostingPlanData.vatPrice || '0'),
+          totalPrice: formatPrice(hostingPlanData.totalPrice || '0'),
+          supplierId: hostingPlanData.supplierId?._id || hostingPlanData.supplierId || ''
         });
       }
     } catch (error) {
@@ -102,31 +98,11 @@ export default function HostingPlanAdd() {
     }
 
     if (!formData.purchasePrice) {
-      toast.error('Vui lòng nhập giá nhập');
+      toast.error('Vui lòng nhập giá vốn');
       return false;
     }
 
-    if (!formData.retailPrice) {
-      toast.error('Vui lòng nhập giá bán');
-      return false;
-    }
-
-    if (!formData.renewalPrice) {
-      toast.error('Vui lòng nhập giá gia hạn');
-      return false;
-    }
-
-    if (!formData.account) {
-      toast.error('Vui lòng nhập số tài khoản');
-      return false;
-    }
-
-    if (!formData.capacity) {
-      toast.error('Vui lòng nhập dung lượng lưu trữ');
-      return false;
-    }
-
-    if (!formData.supplier) {
+    if (!formData.supplierId) {
       toast.error('Vui lòng chọn nhà cung cấp');
       return false;
     }
@@ -152,13 +128,8 @@ export default function HostingPlanAdd() {
       const hostingPlanData = {
         name: formData.name,
         purchasePrice: parseCurrency(formData.purchasePrice),
-        retailPrice: parseCurrency(formData.retailPrice),
-        renewalPrice: parseCurrency(formData.renewalPrice),
-        registrationYears: Number(formData.registrationYears) || 1,
-        account: Number(formData.account),
-        capacity: Number(formData.capacity),
-        supplier: formData.supplier,
-        isActive: formData.isActive
+        vat: Number(formData.vat),
+        supplierId: formData.supplierId
       };
 
       const response = isEdit
@@ -211,7 +182,15 @@ export default function HostingPlanAdd() {
           />
           <TextField
             fullWidth
-            label="Giá nhập (*)"
+            label="Mô tả"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            sx={{ mb: 3 }}
+          />
+          <TextField
+            fullWidth
+            label="Giá vốn (*)"
             name="purchasePrice"
             value={formData.purchasePrice}
             onChange={handlePriceChange}
@@ -220,58 +199,41 @@ export default function HostingPlanAdd() {
           />
           <TextField
             fullWidth
-            label="Giá bán (*)"
-            name="retailPrice"
-            value={formData.retailPrice}
-            onChange={handlePriceChange}
+            label="VAT (%)"
+            name="vat"
+            value={formData.vat}
+            onChange={handleChange}
             sx={{ mb: 3 }}
             inputProps={{ inputMode: 'numeric' }}
           />
-          <TextField
-            fullWidth
-            label="Giá gia hạn hàng năm (*)"
-            name="renewalPrice"
-            value={formData.renewalPrice}
-            onChange={handlePriceChange}
-            sx={{ mb: 3 }}
-            inputProps={{ inputMode: 'numeric' }}
-          />
-          <TextField
-            fullWidth
-            label="Số năm đăng ký mặc định"
-            name="registrationYears"
-            type="number"
-            value={formData.registrationYears}
-            onChange={handleChange}
-            sx={{ mb: 3 }}
-            inputProps={{ min: 1 }}
-          />
-          <TextField
-            fullWidth
-            label="Số tài khoản (*)"
-            name="account"
-            type="number"
-            value={formData.account}
-            onChange={handleChange}
-            sx={{ mb: 3 }}
-            inputProps={{ min: 1 }}
-          />
-          <TextField
-            fullWidth
-            label="Dung lượng (GB) (*)"
-            name="capacity"
-            type="number"
-            value={formData.capacity}
-            onChange={handleChange}
-            sx={{ mb: 3 }}
-            inputProps={{ min: 1 }}
-          />
+          {isEdit && (
+            <>
+              <TextField
+                fullWidth
+                label="Giá đã VAT (*)"
+                name="vatPrice"
+                value={formData.vatPrice}
+                disabled={isEdit}
+                  sx={{ mb: 3 }}
+                  inputProps={{ inputMode: 'numeric' }}
+              />
+              <TextField
+                fullWidth
+                label="Thành tiền (*)"
+                name="totalPrice"
+                value={formData.totalPrice}
+                disabled={isEdit}
+                sx={{ mb: 3 }}
+                inputProps={{ inputMode: 'numeric' }}
+              />
+            </>
+          )}
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="group-label">Nhà cung cấp (*)</InputLabel>
             <Select
               labelId="group-label"
-              name="supplier"
-              value={formData.supplier}
+              name="supplierId"
+              value={formData.supplierId}
               onChange={handleChange}
               disabled={isEdit}
               label="Nhà cung cấp (*)"
@@ -282,21 +244,6 @@ export default function HostingPlanAdd() {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
-          <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 3 }}>
-            <Typography component="span" sx={{ mr: 2 }}>
-              Hiển thị gói dịch vụ
-            </Typography>
-            <Switch
-              name="isActive"
-              checked={formData.isActive}
-              onChange={(e) =>
-                setFormData(prev => ({
-                  ...prev,
-                  isActive: e.target.checked
-                }))
-              }
-          />
           </FormControl>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
             <Button

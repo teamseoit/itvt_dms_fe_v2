@@ -29,12 +29,12 @@ import { formatDateTime, formatPrice } from '../../../utils/formatConstants';
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
-  { id: 'name', label: 'Tên gói', minWidth: 120 },
-  { id: 'purchasePrice', label: 'Giá nhập', minWidth: 120 },
-  { id: 'retailPrice', label: 'Giá bán', minWidth: 120 },
-  { id: 'renewalPrice', label: 'Giá gia hạn', minWidth: 120 },
+  { id: 'name', label: 'Tên gói', minWidth: 150 },
+  { id: 'purchasePrice', label: 'Giá vốn', minWidth: 120 },
+  { id: 'vat', label: 'VAT(%)', minWidth: 80 },
+  { id: 'vatPrice', label: 'Giá đã VAT', minWidth: 120 },
+  { id: 'totalPrice', label: 'Thành tiền', minWidth: 120 },
   { id: 'supplier', label: 'Nhà cung cấp', minWidth: 200 },
-  { id: 'isActive', label: 'Trạng thái', minWidth: 80 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
 ];
 
@@ -183,27 +183,10 @@ export default function HostingPlanList() {
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{formatPrice(row.purchasePrice)}</TableCell>
-                    <TableCell>{formatPrice(row.retailPrice)}</TableCell>
-                    <TableCell>{formatPrice(row.renewalPrice)}</TableCell>
-                    <TableCell>{row.supplier?.company}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        sx={{
-                          borderRadius: '5px',
-                          textTransform: 'none',
-                          fontWeight: 500,
-                          boxShadow: 'none',
-                          backgroundColor: row.isActive ? '#4caf50' : '#f44336',
-                          '&:hover': {
-                            backgroundColor: row.isActive ? '#4caf50' : '#f44336',
-                          },
-                        }}
-                      >
-                        {row.isActive ? 'Hoạt động' : 'Đã hủy'}
-                      </Button>
-                    </TableCell>
+                    <TableCell>{row.vat}%</TableCell>
+                    <TableCell>{formatPrice(row.vatPrice)}</TableCell>
+                    <TableCell>{formatPrice(row.totalPrice)}</TableCell>
+                    <TableCell>{row.supplierId?.name}</TableCell>
                     <TableCell>{formatDateTime(row.createdAt)}</TableCell>
                   </TableRow>
                 ))
