@@ -2,24 +2,26 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import IconButton from '@mui/material/IconButton';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-import CircularProgress from '@mui/material/CircularProgress';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  Typography,
+  CircularProgress
+} from '@mui/material';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import SERVER_PLAN_API from '../../../services/plans/serverPlanService';
@@ -34,7 +36,7 @@ const columns = [
   { id: 'purchasePrice', label: 'Giá vốn', minWidth: 120 },
   { id: 'retailPrice', label: 'Giá bán', minWidth: 120 },
   { id: 'durationInMonths', label: 'Thời hạn (tháng)', minWidth: 130 },
-  { id: 'supplier', label: 'Nhà cung cấp', minWidth: 200 },
+  { id: 'supplierId', label: 'Nhà cung cấp', minWidth: 200 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
 ];
 
@@ -186,7 +188,7 @@ export default function ServerPlanList() {
                     <TableCell>{formatPrice(row.purchasePrice)}</TableCell>
                     <TableCell>{formatPrice(row.retailPrice)}</TableCell>
                     <TableCell>{row.durationInMonths} tháng</TableCell>
-                    <TableCell>{row.supplier?.name}</TableCell>
+                    <TableCell>{row.supplierId?.name}</TableCell>
                     <TableCell>{formatDateTime(row.createdAt)}</TableCell>
                   </TableRow>
                 ))

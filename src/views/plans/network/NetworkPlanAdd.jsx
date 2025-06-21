@@ -31,7 +31,7 @@ export default function NetworkPlanAdd() {
     validityInDays: '',
     esimSupported: false,
     description: '',
-    supplier: ''
+    supplierId: ''
   });
 
   const { hasPermission } = usePermissions();
@@ -77,7 +77,7 @@ export default function NetworkPlanAdd() {
           validityInDays: networkPlanData.validityInDays?.toString() || '',
           esimSupported: networkPlanData.esimSupported ?? false,
           description: networkPlanData.description || '',
-          supplier: networkPlanData.supplier?._id || networkPlanData.supplier || ''
+          supplierId: networkPlanData.supplierId?._id || networkPlanData.supplierId || ''
         });
       }
     } catch (error) {
@@ -114,7 +114,7 @@ export default function NetworkPlanAdd() {
       return false;
     }
 
-    if (!formData.supplier) {
+    if (!formData.supplierId) {
       toast.error('Vui lòng chọn nhà cung cấp');
       return false;
     }
@@ -145,7 +145,7 @@ export default function NetworkPlanAdd() {
         validityInDays: formData.validityInDays ? parseInt(formData.validityInDays) : undefined,
         esimSupported: formData.esimSupported,
         description: formData.description,
-        supplier: formData.supplier
+        supplierId: formData.supplierId
       };
 
       const response = isEdit
@@ -248,8 +248,8 @@ export default function NetworkPlanAdd() {
             <InputLabel id="supplier-label">Nhà cung cấp (*)</InputLabel>
             <Select
               labelId="supplier-label"
-              name="supplier"
-              value={formData.supplier}
+              name="supplierId"
+              value={formData.supplierId}
               onChange={handleChange}
               label="Nhà cung cấp (*)"
             >

@@ -34,7 +34,7 @@ export default function ServerPlanAdd() {
     durationInMonths: 1,
     ipAddress: [],
     description: '',
-    supplier: ''
+    supplierId: ''
   });
 
   const [ipAddressInput, setIpAddressInput] = useState('');
@@ -118,7 +118,7 @@ export default function ServerPlanAdd() {
           durationInMonths: serverPlanData.durationInMonths || 1,
           ipAddress: serverPlanData.ipAddress || [],
           description: serverPlanData.description || '',
-          supplier: serverPlanData.supplier?._id || serverPlanData.supplier || ''
+          supplierId: serverPlanData.supplierId?._id || serverPlanData.supplierId || ''
         });
       }
     } catch (error) {
@@ -150,7 +150,7 @@ export default function ServerPlanAdd() {
       return false;
     }
 
-    if (!formData.supplier) {
+    if (!formData.supplierId) {
       toast.error('Vui lòng chọn nhà cung cấp');
       return false;
     }
@@ -184,7 +184,7 @@ export default function ServerPlanAdd() {
         durationInMonths: parseInt(formData.durationInMonths),
         ipAddress: formData.ipAddress,
         description: formData.description,
-        supplier: formData.supplier
+        supplierId: formData.supplierId
       };
 
       const response = isEdit
@@ -348,8 +348,8 @@ export default function ServerPlanAdd() {
             <InputLabel id="supplier-label">Nhà cung cấp (*)</InputLabel>
             <Select
               labelId="supplier-label"
-              name="supplier"
-              value={formData.supplier}
+              name="supplierId"
+              value={formData.supplierId}
               onChange={handleChange}
               label="Nhà cung cấp (*)"
             >
