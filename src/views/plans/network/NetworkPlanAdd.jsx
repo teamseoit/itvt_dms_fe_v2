@@ -207,7 +207,7 @@ export default function NetworkPlanAdd() {
           />
           <TextField
             fullWidth
-            label="Giá nhập (*)"
+            label="Giá vốn (*)"
             name="purchasePrice"
             value={formData.purchasePrice}
             onChange={handlePriceChange}

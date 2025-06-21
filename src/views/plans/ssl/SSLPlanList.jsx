@@ -30,11 +30,10 @@ import { formatDateTime, formatPrice } from '../../../utils/formatConstants';
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
   { id: 'name', label: 'Tên gói', minWidth: 120 },
-  { id: 'purchasePrice', label: 'Giá nhập', minWidth: 120 },
-  { id: 'retailPrice', label: 'Giá bán', minWidth: 120 },
-  { id: 'renewalPrice', label: 'Giá gia hạn', minWidth: 120 },
-  { id: 'supplier', label: 'Nhà cung cấp', minWidth: 200 },
-  { id: 'isActive', label: 'Trạng thái', minWidth: 80 },
+  { id: 'purchasePrice', label: 'Giá vốn', minWidth: 180 },
+  { id: 'retailPrice', label: 'Giá bán', minWidth: 180 },
+  { id: 'vat', label: 'VAT', minWidth: 120 },
+  { id: 'supplier', label: 'Nhà cung cấp', minWidth: 180 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
 ];
 
@@ -182,28 +181,24 @@ export default function SSLPlanList() {
                       )}
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
-                    <TableCell>{formatPrice(row.purchasePrice)}</TableCell>
-                    <TableCell>{formatPrice(row.retailPrice)}</TableCell>
-                    <TableCell>{formatPrice(row.renewalPrice)}</TableCell>
-                    <TableCell>{row.supplier?.company}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        sx={{
-                          borderRadius: '5px',
-                          textTransform: 'none',
-                          fontWeight: 500,
-                          boxShadow: 'none',
-                          backgroundColor: row.isActive ? '#4caf50' : '#f44336',
-                          '&:hover': {
-                            backgroundColor: row.isActive ? '#4caf50' : '#f44336',
-                          },
-                        }}
-                      >
-                        {row.isActive ? 'Hoạt động' : 'Đã hủy'}
-                      </Button>
+                      <Typography variant="body1" fontWeight={600}>
+                        {formatPrice(row.purchasePrice)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {row.vat > 0 ? `Giá đã bao gồm VAT: ${formatPrice(row.totalPurchasePriceWithVAT)}` : `Giá chưa bao gồm VAT: ${formatPrice(row.purchasePrice)}`}
+                      </Typography>
                     </TableCell>
+                    <TableCell>
+                      <Typography variant="body1" fontWeight={600}>
+                        {formatPrice(row.retailPrice)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {row.vat > 0 ? `Giá đã bao gồm VAT: ${formatPrice(row.totalRetailPriceWithVAT)}` : `Giá chưa bao gồm VAT: ${formatPrice(row.retailPrice)}`}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>{row.vat}%</TableCell>
+                    <TableCell>{row.supplierId?.name}</TableCell>
                     <TableCell>{formatDateTime(row.createdAt)}</TableCell>
                   </TableRow>
                 ))

@@ -141,7 +141,7 @@ export default function ServerPlanAdd() {
     }
 
     if (!formData.purchasePrice) {
-      toast.error('Vui lòng nhập giá nhập');
+      toast.error('Vui lòng nhập giá vốn');
       return false;
     }
 
@@ -275,7 +275,7 @@ export default function ServerPlanAdd() {
           />
           <TextField
             fullWidth
-            label="Giá nhập (*)"
+            label="Giá vốn (*)"
             name="purchasePrice"
             value={formData.purchasePrice}
             onChange={handlePriceChange}

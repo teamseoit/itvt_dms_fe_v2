@@ -25,12 +25,11 @@ export default function SSLPlanAdd() {
   const [serviceSupplier, setServiceSupplier] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
+    description: '',
     purchasePrice: '',
     retailPrice: '',
-    renewalPrice: '',
-    description: '',
-    supplier: '',
-    isActive: true
+    vat: 0,
+    supplierId: '',
   });
 
   const { hasPermission } = usePermissions();
@@ -70,12 +69,11 @@ export default function SSLPlanAdd() {
         const sslPlanData = response.data.data;
         setFormData({
           name: sslPlanData.name || '',
+          description: sslPlanData.description || '',
           purchasePrice: formatCurrencyInput(sslPlanData.purchasePrice?.toString() || '0'),
           retailPrice: formatCurrencyInput(sslPlanData.retailPrice?.toString() || '0'),
-          renewalPrice: formatCurrencyInput(sslPlanData.renewalPrice?.toString() || '0'),
-          description: sslPlanData.description || '',
-          supplier: sslPlanData.supplier?._id || sslPlanData.supplier || '',
-          isActive: sslPlanData.isActive ?? true
+          vat: sslPlanData.vat || 0,
+          supplierId: sslPlanData.supplierId?._id || sslPlanData.supplierId || ''
         });
       }
     } catch (error) {
@@ -98,7 +96,7 @@ export default function SSLPlanAdd() {
     }
 
     if (!formData.purchasePrice) {
-      toast.error('Vui lòng nhập giá nhập');
+      toast.error('Vui lòng nhập giá vốn');
       return false;
     }
 
@@ -107,12 +105,7 @@ export default function SSLPlanAdd() {
       return false;
     }
 
-    if (!formData.renewalPrice) {
-      toast.error('Vui lòng nhập giá gia hạn');
-      return false;
-    }
-
-    if (!formData.supplier) {
+    if (!formData.supplierId) {
       toast.error('Vui lòng chọn nhà cung cấp');
       return false;
     }
@@ -137,12 +130,11 @@ export default function SSLPlanAdd() {
       setLoading(true);
       const sslPlanData = {
         name: formData.name,
+        description: formData.description,
         purchasePrice: parseCurrency(formData.purchasePrice),
         retailPrice: parseCurrency(formData.retailPrice),
-        renewalPrice: parseCurrency(formData.renewalPrice),
-        description: formData.description,
-        supplier: formData.supplier,
-        isActive: formData.isActive
+        vat: formData.vat,
+        supplierId: formData.supplierId
       };
 
       const response = isEdit
@@ -195,7 +187,15 @@ export default function SSLPlanAdd() {
           />
           <TextField
             fullWidth
-            label="Giá nhập (*)"
+            label="Mô tả"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            sx={{ mb: 3 }}
+          />
+          <TextField
+            fullWidth
+            label="Giá vốn (*)"
             name="purchasePrice"
             value={formData.purchasePrice}
             onChange={handlePriceChange}
@@ -213,28 +213,19 @@ export default function SSLPlanAdd() {
           />
           <TextField
             fullWidth
-            label="Giá gia hạn hàng năm (*)"
-            name="renewalPrice"
-            value={formData.renewalPrice}
+            label="VAT (%)"
+            name="vat"
+            value={formData.vat}
             onChange={handlePriceChange}
             sx={{ mb: 3 }}
             inputProps={{ inputMode: 'numeric' }}
-          />
-          <TextField
-            fullWidth
-            label="Mô tả"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            disabled={isEdit}
-            sx={{ mb: 3 }}
           />
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="group-label">Nhà cung cấp (*)</InputLabel>
             <Select
               labelId="group-label"
-              name="supplier"
-              value={formData.supplier}
+              name="supplierId"
+              value={formData.supplierId}
               onChange={handleChange}
               disabled={isEdit}
               label="Nhà cung cấp (*)"
@@ -245,21 +236,6 @@ export default function SSLPlanAdd() {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
-          <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', mb: 3 }}>
-            <Typography component="span" sx={{ mr: 2 }}>
-              Hiển thị gói dịch vụ
-            </Typography>
-            <Switch
-              name="isActive"
-              checked={formData.isActive}
-              onChange={(e) =>
-                setFormData(prev => ({
-                  ...prev,
-                  isActive: e.target.checked
-                }))
-              }
-          />
           </FormControl>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
             <Button

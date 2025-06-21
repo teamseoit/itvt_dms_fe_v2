@@ -31,7 +31,7 @@ const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
   { id: 'name', label: 'Tên gói', minWidth: 120 },
   { id: 'storageInGB', label: 'Lưu trữ (GB)', minWidth: 120 },
-  { id: 'purchasePrice', label: 'Giá nhập', minWidth: 120 },
+  { id: 'purchasePrice', label: 'Giá vốn', minWidth: 120 },
   { id: 'retailPrice', label: 'Giá bán', minWidth: 120 },
   { id: 'durationInMonths', label: 'Thời hạn (tháng)', minWidth: 130 },
   { id: 'supplier', label: 'Nhà cung cấp', minWidth: 200 },

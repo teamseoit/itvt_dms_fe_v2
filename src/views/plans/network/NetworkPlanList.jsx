@@ -31,7 +31,7 @@ const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
   { id: 'name', label: 'Tên gói', minWidth: 120 },
   { id: 'dataCapacityInGB', label: 'Dung lượng', minWidth: 120 },
-  { id: 'purchasePrice', label: 'Giá nhập', minWidth: 120 },
+  { id: 'purchasePrice', label: 'Giá vốn', minWidth: 120 },
   { id: 'retailPrice', label: 'Giá bán', minWidth: 120 },
   { id: 'validityInDays', label: 'Thời hạn', minWidth: 120 },
   { id: 'esimSupported', label: 'Hỗ trợ eSIM', minWidth: 100 },
