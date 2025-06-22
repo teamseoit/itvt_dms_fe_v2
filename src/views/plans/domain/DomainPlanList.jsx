@@ -147,7 +147,7 @@ export default function DomainPlanList() {
       </Box>
       {hasPermission(PERMISSIONS.DOMAIN_PLAN.VIEW) ? (
         <>
-          <FormControl sx={{ mb: 3, width: '200px', backgroundColor: 'white', borderRadius: '10px' }}>
+          {/* <FormControl sx={{ mb: 3, width: '200px', backgroundColor: 'white', borderRadius: '10px' }}>
             <InputLabel id="action-type-label">Hành động</InputLabel>
             <Select
               labelId="action-type-label"
@@ -168,7 +168,7 @@ export default function DomainPlanList() {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
+          </FormControl> */}
           <Paper sx={{ width: '100%', overflow: 'hidden' }}>
             <TableContainer>
               <Table stickyHeader aria-label="bảng gói dịch vụ tên miền">

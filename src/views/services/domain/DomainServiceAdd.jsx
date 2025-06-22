@@ -32,11 +32,10 @@ export default function DomainServiceAdd() {
     name: '',
     periodValue: '',
     periodUnit: 'năm',
-    customer: '',
-    domainPlan: '',
-    serverPlan: '',
+    customerId: '',
+    domainPlanId: '',
+    serverPlanId: '',
     vatIncluded: false,
-    unitPrice: '',
     totalPrice: '',
     registeredAt: '',
     expiredAt: '',
@@ -45,15 +44,6 @@ export default function DomainServiceAdd() {
   });
 
   const { hasPermission } = usePermissions();
-
-  const handlePriceChange = (e) => {
-    const { name, value } = e.target;
-    const formattedValue = formatCurrencyInput(value);
-    setFormData(prev => ({
-      ...prev,
-      [name]: formattedValue
-    }));
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -103,8 +93,8 @@ export default function DomainServiceAdd() {
         const domainServiceData = response.data.data;
         
         let serverPlanValue = '';
-        if (domainServiceData.serverPlan) {
-          const serverPlanId = domainServiceData.serverPlan?._id || domainServiceData.serverPlan;
+        if (domainServiceData.serverPlanId) {
+          const serverPlanId = domainServiceData.serverPlanId?._id || domainServiceData.serverPlanId;
           setOriginalServerPlanId(serverPlanId);
           serverPlanValue = serverPlanId;
         }
@@ -113,12 +103,10 @@ export default function DomainServiceAdd() {
           name: domainServiceData.name || '',
           periodValue: domainServiceData.periodValue?.toString() || '',
           periodUnit: domainServiceData.periodUnit || 'năm',
-          customer: domainServiceData.customer?._id || domainServiceData.customer || '',
-          domainPlan: domainServiceData.domainPlan?._id || domainServiceData.domainPlan || '',
-          serverPlan: serverPlanValue,
+          customerId: domainServiceData.customerId?._id || domainServiceData.customerId || '',
+          domainPlanId: domainServiceData.domainPlanId?._id || domainServiceData.domainPlanId || '',
+          serverPlanId: serverPlanValue,
           vatIncluded: domainServiceData.vatIncluded ?? false,
-          unitPrice: formatCurrencyInput(domainServiceData.unitPrice?.toString() || '0'),
-          totalPrice: formatCurrencyInput(domainServiceData.totalPrice?.toString() || '0'),
           registeredAt: domainServiceData.registeredAt ? new Date(domainServiceData.registeredAt).toISOString().split('T')[0] : '',
           expiredAt: domainServiceData.expiredAt ? new Date(domainServiceData.expiredAt).toISOString().split('T')[0] : '',
           pingCloudflare: domainServiceData.pingCloudflare ?? false,
@@ -141,12 +129,12 @@ export default function DomainServiceAdd() {
   }, [id]);
 
   useEffect(() => {
-    if (isEdit && serverPlans.length > 0 && originalServerPlanId && !formData.serverPlan.includes(':')) {
+    if (isEdit && serverPlans.length > 0 && originalServerPlanId && !formData.serverPlanId.includes(':')) {
       const serverPlan = serverPlans.find(plan => plan._id === originalServerPlanId);
       if (serverPlan && serverPlan.ipAddress.length > 0) {
         setFormData(prev => ({
           ...prev,
-          serverPlan: `${serverPlan._id}:${serverPlan.ipAddress[0]}`
+          serverPlanId: `${serverPlan._id}:${serverPlan.ipAddress[0]}`
         }));
       }
     }
@@ -163,7 +151,7 @@ export default function DomainServiceAdd() {
       return false;
     }
 
-    if (!formData.customer) {
+    if (!formData.customerId) {
       toast.error('Vui lòng chọn khách hàng');
       return false;
     }
@@ -193,21 +181,18 @@ export default function DomainServiceAdd() {
     try {
       setLoading(true);
       
-      // Extract server plan ID from the combined value (format: "serverPlanId:ipAddress")
-      const serverPlanId = formData.serverPlan.includes(':') 
-        ? formData.serverPlan.split(':')[0] 
-        : formData.serverPlan;
+      const serverPlanId = formData.serverPlanId.includes(':') 
+        ? formData.serverPlanId.split(':')[0] 
+        : formData.serverPlanId;
 
       const domainServiceData = {
         name: formData.name,
         periodValue: parseInt(formData.periodValue),
         periodUnit: formData.periodUnit,
-        customer: formData.customer,
-        domainPlan: formData.domainPlan || null,
-        serverPlan: serverPlanId || null,
+        customerId: formData.customerId,
+        domainPlanId: formData.domainPlanId || null,
+        serverPlanId: serverPlanId || null,
         vatIncluded: formData.vatIncluded,
-        unitPrice: parseCurrency(formData.unitPrice),
-        totalPrice: parseCurrency(formData.totalPrice),
         registeredAt: formData.registeredAt ? new Date(formData.registeredAt) : null,
         expiredAt: formData.expiredAt ? new Date(formData.expiredAt) : null,
         pingCloudflare: formData.pingCloudflare,
@@ -255,11 +240,12 @@ export default function DomainServiceAdd() {
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Tên dịch vụ (*)"
+            label="Tên miền (*)"
             name="name"
             value={formData.name}
             onChange={handleChange}
             sx={{ mb: 3 }}
+            disabled={isEdit}
           />
           
           <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
@@ -280,6 +266,7 @@ export default function DomainServiceAdd() {
                 value={formData.periodUnit}
                 onChange={handleChange}
                 label="Đơn vị"
+                disabled
               >
                 <MenuItem value="năm">Năm</MenuItem>
               </Select>
@@ -290,8 +277,8 @@ export default function DomainServiceAdd() {
             <InputLabel id="customer-label">Khách hàng (*)</InputLabel>
             <Select
               labelId="customer-label"
-              name="customer"
-              value={formData.customer}
+              name="customerId"
+              value={formData.customerId}
               onChange={handleChange}
               label="Khách hàng (*)"
             >
@@ -307,14 +294,15 @@ export default function DomainServiceAdd() {
             <InputLabel id="domain-plan-label">Gói tên miền</InputLabel>
             <Select
               labelId="domain-plan-label"
-              name="domainPlan"
-              value={formData.domainPlan}
+              name="domainPlanId"
+              value={formData.domainPlanId}
               onChange={handleChange}
               label="Gói tên miền"
+              disabled={isEdit}
             >
               {domainPlans.map((plan) => (
                 <MenuItem key={plan._id} value={plan._id}>
-                  {plan.name}
+                  {plan.extension}
                 </MenuItem>
               ))}
             </Select>
@@ -324,8 +312,8 @@ export default function DomainServiceAdd() {
             <InputLabel id="server-plan-label">Địa chỉ IP</InputLabel>
             <Select
               labelId="server-plan-label"
-              name="serverPlan"
-              value={formData.serverPlan}
+              name="serverPlanId"
+              value={formData.serverPlanId}
               onChange={handleChange}
               label="Địa chỉ IP"
             >
@@ -338,27 +326,6 @@ export default function DomainServiceAdd() {
               )}
             </Select>
           </FormControl>
-{/* 
-          <TextField
-            fullWidth
-            label="Đơn giá (*)"
-            name="unitPrice"
-            value={formData.unitPrice}
-            onChange={handlePriceChange}
-            sx={{ mb: 3 }}
-            inputProps={{ inputMode: 'numeric' }}
-          />
-
-          <TextField
-            fullWidth
-            label="Tổng giá"
-            name="totalPrice"
-            value={formData.totalPrice}
-            onChange={handlePriceChange}
-            sx={{ mb: 3 }}
-            inputProps={{ inputMode: 'numeric' }}
-          /> */}
-
           <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
             <TextField
               fullWidth
@@ -389,6 +356,7 @@ export default function DomainServiceAdd() {
               value={formData.status}
               onChange={handleChange}
               label="Trạng thái"
+              disabled={isEdit}
             >
               <MenuItem value={1}>Hoạt động</MenuItem>
               <MenuItem value={2}>Sắp hết hạn</MenuItem>

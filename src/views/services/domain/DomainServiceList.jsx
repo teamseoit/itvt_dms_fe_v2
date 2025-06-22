@@ -29,14 +29,13 @@ import { formatDateTime, formatDate, formatPrice, maskPhoneNumber } from '../../
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
-  { id: 'name', label: 'Tên dịch vụ', minWidth: 150 },
-  { id: 'customer', label: 'Khách hàng', minWidth: 200 },
+  { id: 'name', label: 'Tên miền', minWidth: 150 },
+  { id: 'customerId', label: 'Khách hàng', minWidth: 200 },
   { id: 'period', label: 'Thời hạn', minWidth: 100 },
-  { id: 'totalPrice', label: 'Tổng tiền', minWidth: 120 },
   { id: 'ipAddress', label: 'Địa chỉ IP', minWidth: 150 },
   { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 160 },
   { id: 'expiredAt', label: 'Ngày hết hạn', minWidth: 160 },
-  { id: 'status', label: 'Trạng thái', minWidth: 250 },
+  { id: 'status', label: 'Trạng thái', minWidth: 220 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 200 }
 ];
 
@@ -226,10 +225,9 @@ export default function DomainServiceList() {
                       )}
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.customer?.fullName} <br/>{maskPhoneNumber(row.customer?.phoneNumber)}</TableCell>
+                    <TableCell>{row.customerId?.fullName} <br/>{maskPhoneNumber(row.customerId?.phoneNumber)}</TableCell>
                     <TableCell>{row.periodValue} {row.periodUnit}</TableCell>
-                    <TableCell>{formatPrice(row.totalPrice)}</TableCell>
-                    <TableCell>{getIpAddress(row.serverPlan)}</TableCell>
+                    <TableCell>{getIpAddress(row.serverPlanId)}</TableCell>
                     <TableCell>{row.registeredAt ? formatDate(row.registeredAt) : 'N/A'}</TableCell>
                     <TableCell>{row.expiredAt ? formatDate(row.expiredAt) : 'N/A'}</TableCell>
                     <TableCell>

@@ -14,6 +14,7 @@ export const formatDate = (dateString) => {
 }; 
 
 export const maskPhoneNumber = (phone) => {
+  if (!phone) return '';
   let phoneStr = phone.toString();
   if (phoneStr.startsWith('84')) {
     phoneStr = '0' + phoneStr.slice(2);
