@@ -2,25 +2,29 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import IconButton from '@mui/material/IconButton';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-import CircularProgress from '@mui/material/CircularProgress';
-import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  Typography,
+  CircularProgress,
+  Chip,
+  Collapse
+} from '@mui/material';
+import { IconPlus, IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 
 import DOMAIN_SERVICE_API from '../../../services/services/domainServiceService';
 import usePermissions from '../../../hooks/usePermissions';
@@ -28,15 +32,13 @@ import { PERMISSIONS } from '../../../constants/permissions';
 import { formatDateTime, formatDate, formatPrice, maskPhoneNumber } from '../../../utils/formatConstants';
 
 const columns = [
+  { id: 'info', label: 'Chi tiết', minWidth: 80 },
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
   { id: 'name', label: 'Tên miền', minWidth: 150 },
-  { id: 'customerId', label: 'Khách hàng', minWidth: 200 },
-  { id: 'period', label: 'Thời hạn', minWidth: 100 },
-  { id: 'ipAddress', label: 'Địa chỉ IP', minWidth: 150 },
-  { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 160 },
-  { id: 'expiredAt', label: 'Ngày hết hạn', minWidth: 160 },
+  { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 150 },
+  { id: 'expiredAt', label: 'Ngày hết hạn', minWidth: 150 },
   { id: 'status', label: 'Trạng thái', minWidth: 220 },
-  { id: 'createdAt', label: 'Ngày tạo', minWidth: 200 }
+  { id: 'createdAt', label: 'Ngày tạo', minWidth: 180 }
 ];
 
 export default function DomainServiceList() {
@@ -56,6 +58,7 @@ export default function DomainServiceList() {
     }
   });
 
+  const [openInfoId, setOpenInfoId] = useState(null);
   const { hasPermission } = usePermissions();
 
   const fetchDomainServices = async (pageNumber = 1) => {
@@ -81,6 +84,10 @@ export default function DomainServiceList() {
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
+  };
+
+  const toggleCollapse = (id) => {
+    setOpenInfoId(prev => (prev === id ? null : id));
   };
 
   const handleAdd = () => {
@@ -147,12 +154,10 @@ export default function DomainServiceList() {
   const getIpAddress = (serverPlan) => {
     if (!serverPlan) return 'N/A';
     
-    // If serverPlan has ipAddress array, return the first IP
     if (serverPlan.ipAddress && Array.isArray(serverPlan.ipAddress) && serverPlan.ipAddress.length > 0) {
       return serverPlan.ipAddress[0];
     }
     
-    // If serverPlan is just an ID string, return N/A
     if (typeof serverPlan === 'string') {
       return 'N/A';
     }
@@ -202,55 +207,83 @@ export default function DomainServiceList() {
                   </TableCell>
                 </TableRow>
               ) : (
-                data.domainServices.map((row) => (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
-                    <TableCell>
-                      {hasPermission(PERMISSIONS.DOMAIN_SERVICE.UPDATE) && (
-                        <IconButton 
-                          color="primary" 
-                          onClick={() => handleEdit(row._id || row.id)}
-                          size="small"
-                        >
-                          <IconEdit size={18} />
-                        </IconButton>
-                      )}
-                      {hasPermission(PERMISSIONS.DOMAIN_SERVICE.DELETE) && (
-                        <IconButton 
-                          color="error" 
-                          onClick={() => handleDeleteClick(row._id || row.id)}
-                          size="small"
-                        >
-                          <IconTrash size={18} />
-                        </IconButton>
-                      )}
-                    </TableCell>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.customerId?.fullName} <br/>{maskPhoneNumber(row.customerId?.phoneNumber)}</TableCell>
-                    <TableCell>{row.periodValue} {row.periodUnit}</TableCell>
-                    <TableCell>{getIpAddress(row.serverPlanId)}</TableCell>
-                    <TableCell>{row.registeredAt ? formatDate(row.registeredAt) : 'N/A'}</TableCell>
-                    <TableCell>{row.expiredAt ? formatDate(row.expiredAt) : 'N/A'}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        sx={{
-                          borderRadius: '5px',
-                          textTransform: 'none',
-                          fontWeight: 500,
-                          boxShadow: 'none',
-                          backgroundColor: getStatusColor(row.status),
-                          '&:hover': {
-                            backgroundColor: getStatusColor(row.status),
-                          },
-                        }}
-                      >
-                        {getStatusText(row.status, row.statusText)}
-                      </Button>
-                    </TableCell>
-                    <TableCell>{formatDateTime(row.createdAt)}</TableCell>
-                  </TableRow>
-                ))
+                data.domainServices.map((row) => {
+                  const isOpen = openInfoId === row._id;
+                  return (
+                    <>
+                      <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
+                        <TableCell>
+                          <IconButton size="small"onClick={() => toggleCollapse(row._id)}>
+                            {isOpen ? <IconChevronUp /> : <IconChevronDown />}
+                          </IconButton>
+                        </TableCell>
+                        <TableCell>
+                          {hasPermission(PERMISSIONS.DOMAIN_SERVICE.UPDATE) && (
+                            <IconButton 
+                              color="primary" 
+                              onClick={() => handleEdit(row._id || row.id)}
+                              size="small"
+                            >
+                              <IconEdit size={18} />
+                            </IconButton>
+                          )}
+                          {hasPermission(PERMISSIONS.DOMAIN_SERVICE.DELETE) && (
+                            <IconButton 
+                              color="error" 
+                              onClick={() => handleDeleteClick(row._id || row.id)}
+                              size="small"
+                            >
+                              <IconTrash size={18} />
+                            </IconButton>
+                          )}
+                        </TableCell>
+                        <TableCell>{row.name}</TableCell>
+                        <TableCell>{row.registeredAt ? formatDate(row.registeredAt) : 'N/A'}</TableCell>
+                        <TableCell>{row.expiredAt ? formatDate(row.expiredAt) : 'N/A'}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            sx={{
+                              borderRadius: '5px',
+                              textTransform: 'none',
+                              fontWeight: 500,
+                              boxShadow: 'none',
+                              backgroundColor: getStatusColor(row.status),
+                              '&:hover': {
+                                backgroundColor: getStatusColor(row.status),
+                              },
+                            }}
+                          >
+                            {getStatusText(row.status, row.statusText)}
+                          </Button>
+                        </TableCell>
+                        <TableCell>{formatDateTime(row.createdAt)}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={columns.length}>
+                          <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+                              <Box margin={1} sx={{ flex: 1 }}>
+                                <Typography variant="subtitle1">Chi tiết dịch vụ tên miền</Typography>
+                                <Typography variant="body2">- Khách hàng: {row.customerId?.fullName} / {maskPhoneNumber(row.customerId?.phoneNumber)}</Typography>
+                                <Typography variant="body2">- Địa chỉ IP: {getIpAddress(row.serverPlanId)}</Typography>
+                                <Typography variant="body2">- Thời hạn: {row.periodValue} {row.periodUnit}</Typography>
+                                <Typography variant="body2">- Ping Cloudflare: {row.pingCloudflare ? 'Đã ping' : 'Không ping'}</Typography>
+                                <Typography variant="body2">- Xuất VAT: {row.vatIncluded ? 'Có' : 'Không'}</Typography>
+                              </Box>
+                              <Box margin={1} sx={{ flex: 1 }}>
+                                <Typography variant="subtitle1">Chi tiết hợp đồng</Typography>
+                                <Typography variant="body2">- Khách hàng: {row.customerId?.fullName} / {maskPhoneNumber(row.customerId?.phoneNumber)}</Typography>
+                                <Typography variant="body2">- Địa chỉ IP: {getIpAddress(row.serverPlanId)}</Typography>
+                              </Box>
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
+                    </>
+                  );
+                })
               )}
             </TableBody>
           </Table>

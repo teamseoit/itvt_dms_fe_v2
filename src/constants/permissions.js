@@ -130,5 +130,12 @@ export const PERMISSIONS = {
     ADD: '667467eb263fb998b9925d2e',
     UPDATE: '667467eb263fb998b9925d2f',
     DELETE: '667467eb263fb998b9925d30'
+  },
+
+  // CONTRACT
+  CONTRACT: {
+    VIEW: '667463d04bede188eee46d7b',
+    UPDATE: '667463d04bede188dfb4610c',
+    DELETE: '667463d04bede188dfb46c7c'
   }
 };

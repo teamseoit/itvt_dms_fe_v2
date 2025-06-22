@@ -62,6 +62,9 @@ const ServerPlanAdd = Loadable(lazy(() => import('views/plans/server/ServerPlanA
 const DomainServiceList = Loadable(lazy(() => import('views/services/domain/DomainServiceList.jsx')));
 const DomainServiceAdd = Loadable(lazy(() => import('views/services/domain/DomainServiceAdd.jsx')));
 
+// Contract Management
+const ContractList = Loadable(lazy(() => import('views/contract/ContractList.jsx')));
+
 function RootLayout() {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <MainLayout /> : <MinimalLayout />;
@@ -370,6 +373,10 @@ const router = createBrowserRouter([
                 element: <DomainServiceAdd />
               },
             ]
+          },
+          {
+            path: 'hop-dong',
+            element: <ContractList />
           },
         ]
       }
