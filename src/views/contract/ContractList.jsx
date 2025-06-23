@@ -23,23 +23,28 @@ import {
   Button,
   TextField,
   InputAdornment,
+  Chip,
 } from '@mui/material';
 import { IconEdit, IconTrash, IconSearch } from '@tabler/icons-react';
 
 import CONTRACT_API from '../../services/contractService';
 import usePermissions from '../../hooks/usePermissions';
 import { PERMISSIONS } from '../../constants/permissions';
-import { formatDateTime, maskPhoneNumber } from '../../utils/formatConstants';
+import { formatDateTime, maskPhoneNumber, formatPrice } from '../../utils/formatConstants';
 
 const ROWS_PER_PAGE = 30;
 const SEARCH_DELAY = 500;
 const MIN_SEARCH_LENGTH = 3;
 
 const columns = [
-  { id: 'actions', label: 'Thao tác', minWidth: 60 },
-  { id: 'contractCode', label: 'Mã hợp đồng', minWidth: 100 },
-  { id: 'customer', label: 'Khách hàng', minWidth: 300 },
-  { id: 'createdAt', label: 'Ngày tạo', minWidth: 150 }
+  { id: 'actions', label: 'Thao tác', minWidth: 100 },
+  { id: 'contractCode', label: 'Mã hợp đồng', minWidth: 150 },
+  { id: 'customer', label: 'Khách hàng', minWidth: 280 },
+  { id: 'totalAmount', label: 'Tổng tiền', minWidth: 180 },
+  { id: 'amountPaid', label: 'Đã thanh toán', minWidth: 150 },
+  { id: 'amountRemaining', label: 'Còn lại', minWidth: 150 },
+  { id: 'status', label: 'Trạng thái', minWidth: 150 },
+  { id: 'createdAt', label: 'Ngày tạo', minWidth: 180 }
 ];
 
 const SearchField = ({ value, onChange }) => (
@@ -252,6 +257,16 @@ export default function ContractList() {
         </TableCell>
         <TableCell>{row.contractCode}</TableCell>
         <TableCell>{row.customer?.fullName} / {maskPhoneNumber(row.customer?.phoneNumber)}</TableCell>
+        <TableCell>{formatPrice(row.financials.totalAmount)}</TableCell>
+        <TableCell>{formatPrice(row.financials.amountPaid)}</TableCell>
+        <TableCell>{formatPrice(row.financials.amountRemaining)}</TableCell>
+        <TableCell>
+          {row.financials.isFullyPaid ? (
+            <Chip label="Đã thanh toán" color="success" />
+          ) : (
+            <Chip label="Chưa thanh toán" color="error" />
+          )}  
+        </TableCell>
         <TableCell>{formatDateTime(row.createdAt)}</TableCell>
       </TableRow>
     ));

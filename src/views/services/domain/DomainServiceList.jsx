@@ -35,8 +35,10 @@ const columns = [
   { id: 'info', label: 'Chi tiết', minWidth: 80 },
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
   { id: 'name', label: 'Tên miền', minWidth: 150 },
-  { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 150 },
-  { id: 'expiredAt', label: 'Ngày hết hạn', minWidth: 150 },
+  { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 130 },
+  { id: 'expiredAt', label: 'Ngày hết hạn', minWidth: 130 },
+  { id: 'periodValue', label: 'Thời hạn', minWidth: 100 },
+  { id: 'totalPrice', label: 'Tổng tiền', minWidth: 150 },
   { id: 'status', label: 'Trạng thái', minWidth: 220 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 180 }
 ];
@@ -240,6 +242,8 @@ export default function DomainServiceList() {
                         <TableCell>{row.name}</TableCell>
                         <TableCell>{row.registeredAt ? formatDate(row.registeredAt) : 'N/A'}</TableCell>
                         <TableCell>{row.expiredAt ? formatDate(row.expiredAt) : 'N/A'}</TableCell>
+                        <TableCell>{row.periodValue} {row.periodUnit}</TableCell>
+                        <TableCell>{formatPrice(row.totalPrice)}</TableCell>
                         <TableCell>
                           <Button
                             variant="contained"
@@ -268,14 +272,9 @@ export default function DomainServiceList() {
                                 <Typography variant="subtitle1">Chi tiết dịch vụ tên miền</Typography>
                                 <Typography variant="body2">- Khách hàng: {row.customerId?.fullName} / {maskPhoneNumber(row.customerId?.phoneNumber)}</Typography>
                                 <Typography variant="body2">- Địa chỉ IP: {getIpAddress(row.serverPlanId)}</Typography>
-                                <Typography variant="body2">- Thời hạn: {row.periodValue} {row.periodUnit}</Typography>
-                                <Typography variant="body2">- Ping Cloudflare: {row.pingCloudflare ? 'Đã ping' : 'Không ping'}</Typography>
+                                <Typography variant="body2">- Ping Cloudflare: {row.pingCloudflare ? 'Có' : 'Không'}</Typography>
                                 <Typography variant="body2">- Xuất VAT: {row.vatIncluded ? 'Có' : 'Không'}</Typography>
-                              </Box>
-                              <Box margin={1} sx={{ flex: 1 }}>
-                                <Typography variant="subtitle1">Chi tiết hợp đồng</Typography>
-                                <Typography variant="body2">- Khách hàng: {row.customerId?.fullName} / {maskPhoneNumber(row.customerId?.phoneNumber)}</Typography>
-                                <Typography variant="body2">- Địa chỉ IP: {getIpAddress(row.serverPlanId)}</Typography>
+                                <Typography variant="body2">- Tổng giá nhập {row.vatIncluded ? 'Có' : 'Không'} VAT: {formatPrice(row.vatPrice)} / {row.periodValue} năm</Typography>
                               </Box>
                             </Box>
                           </Collapse>
