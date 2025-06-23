@@ -64,6 +64,7 @@ const DomainServiceAdd = Loadable(lazy(() => import('views/services/domain/Domai
 
 // Contract Management
 const ContractList = Loadable(lazy(() => import('views/contract/ContractList.jsx')));
+const ContractUpdate = Loadable(lazy(() => import('views/contract/ContractUpdate.jsx')));
 
 function RootLayout() {
   const { isAuthenticated } = useAuth();
@@ -378,6 +379,10 @@ const router = createBrowserRouter([
             path: 'hop-dong',
             element: <ContractList />
           },
+          {
+            path: 'hop-dong/:id',
+            element: <ContractUpdate />
+          }
         ]
       }
     ]

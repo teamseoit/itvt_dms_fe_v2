@@ -24,6 +24,16 @@ export const maskPhoneNumber = (phone) => {
   return visible.replace(/(\d{4})(\d{2})/, '$1 $2') + '****';
 };
 
+export const phoneNumber = (phone) => {
+  if (!phone) return '';
+  let phoneStr = phone.toString();
+  if (phoneStr.startsWith('84')) {
+    phoneStr = '0' + phoneStr.slice(2);
+  }
+  phoneStr = phoneStr.padStart(10, '0');
+  return phoneStr.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
+};
+
 export const convertToFullUrl = (filePath) => {
   if (!filePath) return '';
   const path = filePath.replace(/\\/g, '/');
