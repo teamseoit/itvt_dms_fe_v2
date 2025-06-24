@@ -15,7 +15,7 @@ import { IconArrowLeft } from '@tabler/icons-react';
 import CONTRACT_API from '../../services/contractService';
 import usePermissions from '../../hooks/usePermissions';
 import { PERMISSIONS } from '../../constants/permissions';
-import { phoneNumber, formatPrice } from '../../utils/formatConstants';
+import { phoneNumber, formatPrice, formatCurrencyInput, parseCurrency } from '../../utils/formatConstants';
 
 export default function ContractUpdate() {
   const navigate = useNavigate();
@@ -39,7 +39,6 @@ export default function ContractUpdate() {
 
   const { hasPermission } = usePermissions();
 
-  // Redirect if no ID provided (this component is only for editing)
   useEffect(() => {
     if (!isEdit) {
       toast.error('Không tìm thấy hợp đồng cần cập nhật');
@@ -58,11 +57,11 @@ export default function ContractUpdate() {
           contractCode: contract.contractCode || '',
           customer: contract.customer || '',
           services: contract.services || [],
-          financials: contract.financials || {
-            totalAmount: 0,
-            amountPaid: 0,
-            amountRemaining: 0,
-            isFullyPaid: false
+          financials: {
+            totalAmount: contract.financials?.totalAmount || 0,
+            amountPaid: formatCurrencyInput((contract.financials?.amountPaid || 0).toString()),
+            amountRemaining: contract.financials?.amountRemaining || 0,
+            isFullyPaid: contract.financials?.isFullyPaid || false
           }
         });
       } else {
@@ -90,17 +89,18 @@ export default function ContractUpdate() {
       newErrors.totalAmount = 'Tổng tiền không được âm';
     }
 
-    if (formData.financials.amountPaid < 0) {
+    const parsedAmountPaid = parseCurrency(formData.financials.amountPaid || '0');
+    if (parsedAmountPaid < 0) {
       newErrors.amountPaid = 'Số tiền đã thanh toán không được âm';
     }
 
-    if (formData.financials.amountPaid > formData.financials.totalAmount) {
+    if (parsedAmountPaid > formData.financials.totalAmount) {
       newErrors.amountPaid = 'Số tiền đã thanh toán không được lớn hơn tổng tiền hợp đồng';
     }
 
     // Validation cho isFullyPaid
-    const calculatedAmountRemaining = formData.financials.totalAmount - formData.financials.amountPaid;
-    const calculatedIsFullyPaid = formData.financials.amountPaid <= formData.financials.totalAmount && calculatedAmountRemaining <= 0;
+    const calculatedAmountRemaining = formData.financials.totalAmount - parsedAmountPaid;
+    const calculatedIsFullyPaid = parsedAmountPaid <= formData.financials.totalAmount && calculatedAmountRemaining <= 0;
     
     if (formData.financials.isFullyPaid !== calculatedIsFullyPaid) {
       newErrors.isFullyPaid = 'Trạng thái thanh toán không khớp với số tiền đã thanh toán';
@@ -115,39 +115,39 @@ export default function ContractUpdate() {
     
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
-      setFormData((prev) => {
-        const newData = {
-          ...prev,
-          [parent]: {
-            ...prev[parent],
-            [child]: Number(value) || 0
-          }
-        };
-        
-        // Tự động tính toán amountRemaining và isFullyPaid khi thay đổi totalAmount hoặc amountPaid
-        if (parent === 'financials' && (child === 'totalAmount' || child === 'amountPaid')) {
-          const newTotalAmount = child === 'totalAmount' ? Number(value) || 0 : newData.financials.totalAmount;
-          const newAmountPaid = child === 'amountPaid' ? Number(value) || 0 : newData.financials.amountPaid;
-          
-          newData.financials.amountRemaining = newTotalAmount - newAmountPaid;
-          // Chỉ cho phép isFullyPaid = true khi amountPaid <= totalAmount
-          newData.financials.isFullyPaid = newAmountPaid <= newTotalAmount && newData.financials.amountRemaining <= 0;
-        }
-        
-        return newData;
-      });
-
-      // Validation real-time cho amountPaid
+      
+      // Xử lý đặc biệt cho amountPaid với định dạng tiền tệ
       if (parent === 'financials' && child === 'amountPaid') {
-        const amountPaid = Number(value) || 0;
+        const formattedValue = formatCurrencyInput(value);
+        setFormData((prev) => {
+          const newData = {
+            ...prev,
+            [parent]: {
+              ...prev[parent],
+              [child]: formattedValue
+            }
+          };
+          
+          // Tự động tính toán amountRemaining và isFullyPaid khi thay đổi amountPaid
+          const parsedAmountPaid = parseCurrency(formattedValue);
+          const newTotalAmount = newData.financials.totalAmount;
+          
+          newData.financials.amountRemaining = newTotalAmount - parsedAmountPaid;
+          newData.financials.isFullyPaid = parsedAmountPaid <= newTotalAmount && newData.financials.amountRemaining <= 0;
+          
+          return newData;
+        });
+
+        // Validation real-time cho amountPaid
+        const parsedAmountPaid = parseCurrency(formattedValue);
         const totalAmount = formData.financials.totalAmount;
         
-        if (amountPaid < 0) {
+        if (parsedAmountPaid < 0) {
           setErrors((prev) => ({
             ...prev,
             amountPaid: 'Số tiền đã thanh toán không được âm'
           }));
-        } else if (amountPaid > totalAmount) {
+        } else if (parsedAmountPaid > totalAmount) {
           setErrors((prev) => ({
             ...prev,
             amountPaid: 'Số tiền đã thanh toán không được lớn hơn tổng tiền hợp đồng'
@@ -158,7 +158,30 @@ export default function ContractUpdate() {
             amountPaid: ''
           }));
         }
+        return;
       }
+      
+      // Xử lý cho các trường khác trong financials
+      setFormData((prev) => {
+        const newData = {
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [child]: Number(value) || 0
+          }
+        };
+        
+        // Tự động tính toán amountRemaining và isFullyPaid khi thay đổi totalAmount
+        if (parent === 'financials' && child === 'totalAmount') {
+          const newTotalAmount = Number(value) || 0;
+          const currentAmountPaid = parseCurrency(newData.financials.amountPaid || '0');
+          
+          newData.financials.amountRemaining = newTotalAmount - currentAmountPaid;
+          newData.financials.isFullyPaid = currentAmountPaid <= newTotalAmount && newData.financials.amountRemaining <= 0;
+        }
+        
+        return newData;
+      });
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -186,8 +209,12 @@ export default function ContractUpdate() {
 
     try {
       setLoading(true);
-      // const res = await CONTRACT_API.update(id, formData);
-      console.log(formData);
+      
+      const payload = {
+        amountPaid: parseCurrency(formData.financials.amountPaid)
+      }
+      
+      const res = await CONTRACT_API.update(id, payload);
 
       if (res?.data?.success) {
         toast.success('Cập nhật hợp đồng thành công');
@@ -209,17 +236,18 @@ export default function ContractUpdate() {
   // Hàm tính toán trạng thái thanh toán
   const getPaymentStatus = () => {
     const { totalAmount, amountPaid, amountRemaining, isFullyPaid } = formData.financials;
+    const parsedAmountPaid = parseCurrency(amountPaid || '0');
     
     // Kiểm tra tính nhất quán
-    const calculatedRemaining = totalAmount - amountPaid;
-    const calculatedIsFullyPaid = amountPaid <= totalAmount && calculatedRemaining <= 0;
+    const calculatedRemaining = totalAmount - parsedAmountPaid;
+    const calculatedIsFullyPaid = parsedAmountPaid <= totalAmount && calculatedRemaining <= 0;
     
     // Kiểm tra lỗi khi amountPaid > totalAmount
-    if (amountPaid > totalAmount) {
+    if (parsedAmountPaid > totalAmount) {
       return {
         status: 'error',
         message: '❌ Lỗi: Số tiền thanh toán vượt quá tổng tiền',
-        description: `Đã thanh toán ${formatPrice(amountPaid)} vượt quá tổng tiền ${formatPrice(totalAmount)}`
+        description: `Đã thanh toán ${formatPrice(parsedAmountPaid)} vượt quá tổng tiền ${formatPrice(totalAmount)}`
       };
     }
     
@@ -239,11 +267,11 @@ export default function ContractUpdate() {
       };
     }
     
-    if (isFullyPaid && amountPaid <= totalAmount) {
+    if (isFullyPaid && parsedAmountPaid <= totalAmount) {
       return {
         status: 'success',
         message: '✅ Đã thanh toán đầy đủ',
-        description: `Đã thanh toán: ${formatPrice(amountPaid)} / ${formatPrice(totalAmount)}`
+        description: `Đã thanh toán: ${formatPrice(parsedAmountPaid)} / ${formatPrice(totalAmount)}`
       };
     } else {
       return {
@@ -340,9 +368,9 @@ export default function ContractUpdate() {
                       helperText={
                         errors.amountPaid 
                           ? errors.amountPaid 
-                          : `Giá trị: ${formatPrice(formData.financials.amountPaid)} | Tối đa: ${formatPrice(formData.financials.totalAmount)}`
+                          : `Giá trị: ${formatPrice(parseCurrency(formData.financials.amountPaid || '0'))} | Tối đa: ${formatPrice(formData.financials.totalAmount)}`
                       }
-                      disabled={loading}
+                      disabled={formData.financials.isFullyPaid || loading}
                       InputProps={{
                         inputMode: 'numeric',
                       }}
@@ -401,7 +429,7 @@ export default function ContractUpdate() {
                       • Tổng tiền: {formatPrice(formData.financials.totalAmount)}
                     </Typography>
                     <Typography variant="body2">
-                      • Đã thanh toán: {formatPrice(formData.financials.amountPaid)}
+                      • Đã thanh toán: {formatPrice(parseCurrency(formData.financials.amountPaid || '0'))}
                     </Typography>
                     <Typography variant="body2">
                       • Còn lại: {formatPrice(formData.financials.amountRemaining)}
@@ -425,7 +453,7 @@ export default function ContractUpdate() {
                 <Button
                   type="submit"
                   variant="contained"
-                  disabled={loading}
+                  disabled={formData.financials.isFullyPaid || loading}
                 >
                   {loading ? <CircularProgress size={20} /> : 'Cập nhật'}
                 </Button>
