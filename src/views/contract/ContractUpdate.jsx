@@ -490,7 +490,7 @@ export default function ContractUpdate() {
                           ) : (
                             formData.services.map((row) => (
                               <TableRow hover tabIndex={-1} key={row._id || row.id}>
-                                <TableCell>{row.serviceType}</TableCell>
+                                <TableCell>{row.serviceId.name}</TableCell>
                                 <TableCell>{formatDate(row.serviceId.registeredAt)}</TableCell>
                                 <TableCell>{formatDate(row.serviceId.expiredAt)}</TableCell>
                                 <TableCell>{row.serviceId.vatIncluded ? 'Có' : 'Không'}</TableCell>
