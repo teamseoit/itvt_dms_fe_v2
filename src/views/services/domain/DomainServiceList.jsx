@@ -215,7 +215,7 @@ export default function DomainServiceList() {
                     <>
                       <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                         <TableCell>
-                          <IconButton size="small"onClick={() => toggleCollapse(row._id)}>
+                          <IconButton size="small" onClick={() => toggleCollapse(row._id)}>
                             {isOpen ? <IconChevronUp /> : <IconChevronDown />}
                           </IconButton>
                         </TableCell>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles';
 import { toast } from 'react-toastify';
 import {
   Box,
@@ -8,16 +9,32 @@ import {
   Paper,
   TextField,
   Grid,
-  CircularProgress
+  CircularProgress,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  IconButton
 } from '@mui/material';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { IconArrowLeft, IconChevronUp } from '@tabler/icons-react';
 
 import CONTRACT_API from '../../services/contractService';
 import usePermissions from '../../hooks/usePermissions';
 import { PERMISSIONS } from '../../constants/permissions';
-import { phoneNumber, formatPrice, formatCurrencyInput, parseCurrency } from '../../utils/formatConstants';
+import { phoneNumber, formatPrice, formatCurrencyInput, parseCurrency, formatDate } from '../../utils/formatConstants';
+
+const columns = [
+  { id: 'name', label: 'Tên dịch vụ', minWidth: 100 },
+  { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 110 },
+  { id: 'expiredAt', label: 'Ngày hết hạn', minWidth: 110 },
+  { id: 'vat', label: 'VAT', minWidth: 10 }
+  // { id: 'more', label: '', minWidth: 20 }
+];
 
 export default function ContractUpdate() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = Boolean(id);
@@ -335,111 +352,162 @@ export default function ContractUpdate() {
             <Grid item xs={12}>
               <Typography variant="h3" sx={{ mb: 3 }}>Chi tiết hợp đồng</Typography>
               
-              {/* Thông tin cơ bản */}
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h4" sx={{ mb: 2 }}>Thông tin cơ bản</Typography>
-                <Typography variant="subtitle1">- Mã hợp đồng: {formData.contractCode}</Typography>
-                <Typography variant="subtitle1">- Khách hàng: {formData.customer?.fullName} / {phoneNumber(formData.customer?.phoneNumber)} / {formData.customer?.email}</Typography>
-              </Box>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  {/* Thông tin cơ bản */}
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h4" sx={{ mb: 2 }}>Thông tin cơ bản</Typography>
+                    <Typography variant="subtitle1">- Mã hợp đồng: {formData.contractCode}</Typography>
+                    <Typography variant="subtitle1">- Khách hàng: {formData.customer?.gender == 0 ? 'Anh' : 'Chị'} {formData.customer?.fullName} / {phoneNumber(formData.customer?.phoneNumber)} / {formData.customer?.email}</Typography>
+                  </Box>
+                  {/* Thông tin tài chính */}
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h4" sx={{ mb: 2 }}>Thông tin tài chính</Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Tổng tiền hợp đồng"
+                          name="financials.totalAmount"
+                          value={formatPrice(formData.financials.totalAmount)}
+                          helperText={errors.totalAmount || `Giá trị: ${formatPrice(formData.financials.totalAmount)}`}
+                          disabled
+                        />
+                      </Grid>
 
-              {/* Thông tin tài chính */}
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h4" sx={{ mb: 2 }}>Thông tin tài chính</Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Tổng tiền hợp đồng"
-                      name="financials.totalAmount"
-                      value={formatPrice(formData.financials.totalAmount)}
-                      helperText={errors.totalAmount || `Giá trị: ${formatPrice(formData.financials.totalAmount)}`}
-                      disabled
-                    />
-                  </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Số tiền đã thanh toán"
+                          name="financials.amountPaid"
+                          value={formData.financials.amountPaid}
+                          onChange={handleChange}
+                          error={!!errors.amountPaid}
+                          helperText={
+                            errors.amountPaid 
+                              ? errors.amountPaid 
+                              : `Giá trị: ${formatPrice(parseCurrency(formData.financials.amountPaid || '0'))} | Tối đa: ${formatPrice(formData.financials.totalAmount)}`
+                          }
+                          disabled={formData.financials.isFullyPaid || loading}
+                          InputProps={{
+                            inputMode: 'numeric',
+                          }}
+                        />
+                      </Grid>
 
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Số tiền đã thanh toán"
-                      name="financials.amountPaid"
-                      value={formData.financials.amountPaid}
-                      onChange={handleChange}
-                      error={!!errors.amountPaid}
-                      helperText={
-                        errors.amountPaid 
-                          ? errors.amountPaid 
-                          : `Giá trị: ${formatPrice(parseCurrency(formData.financials.amountPaid || '0'))} | Tối đa: ${formatPrice(formData.financials.totalAmount)}`
-                      }
-                      disabled={formData.financials.isFullyPaid || loading}
-                      InputProps={{
-                        inputMode: 'numeric',
-                      }}
-                    />
-                  </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Số tiền còn lại"
+                          value={formatPrice(formData.financials.amountRemaining)}
+                          disabled
+                          sx={{
+                            '& .MuiInputBase-input': {
+                              color: formData.financials.amountRemaining > 0 ? 'error.main' : 'success.main',
+                              fontWeight: 'bold'
+                            }
+                          }}
+                        />
+                      </Grid>
+                    </Grid>
 
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Số tiền còn lại"
-                      value={formatPrice(formData.financials.amountRemaining)}
-                      disabled
-                      sx={{
-                        '& .MuiInputBase-input': {
-                          color: formData.financials.amountRemaining > 0 ? 'error.main' : 'success.main',
-                          fontWeight: 'bold'
+                    {/* Thông tin trạng thái thanh toán */}
+                    <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Trạng thái thanh toán:
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        color={
+                          paymentStatus.status === 'success' ? 'success.main' : 
+                          paymentStatus.status === 'warning' ? 'warning.main' : 
+                          'error.main'
                         }
-                      }}
-                    />
-                  </Grid>
+                        sx={{ fontWeight: 'bold', mb: 1 }}
+                      >
+                        {paymentStatus.message}
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        color={
+                          paymentStatus.status === 'success' ? 'success.main' : 
+                          paymentStatus.status === 'warning' ? 'error.main' : 
+                          'error.main'
+                        }
+                      >
+                        {paymentStatus.description}
+                      </Typography>
+                      
+                      {/* Hiển thị thông tin chi tiết */}
+                      <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          Chi tiết:
+                        </Typography>
+                        <Typography variant="body2" sx={{ mt: 0.5 }}>
+                          • Tổng tiền: {formatPrice(formData.financials.totalAmount)}
+                        </Typography>
+                        <Typography variant="body2">
+                          • Đã thanh toán: {formatPrice(parseCurrency(formData.financials.amountPaid || '0'))}
+                        </Typography>
+                        <Typography variant="body2">
+                          • Còn lại: {formatPrice(formData.financials.amountRemaining)}
+                        </Typography>
+                        <Typography variant="body2">
+                          • Trạng thái: {formData.financials.isFullyPaid ? 'Đã thanh toán đầy đủ' : 'Chưa thanh toán đầy đủ'}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
                 </Grid>
 
-                {/* Thông tin trạng thái thanh toán */}
-                <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Trạng thái thanh toán:
-                  </Typography>
-                  <Typography 
-                    variant="body2" 
-                    color={
-                      paymentStatus.status === 'success' ? 'success.main' : 
-                      paymentStatus.status === 'warning' ? 'warning.main' : 
-                      'error.main'
-                    }
-                    sx={{ fontWeight: 'bold', mb: 1 }}
-                  >
-                    {paymentStatus.message}
-                  </Typography>
-                  <Typography 
-                    variant="body2" 
-                    color={
-                      paymentStatus.status === 'success' ? 'success.main' : 
-                      paymentStatus.status === 'warning' ? 'error.main' : 
-                      'error.main'
-                    }
-                  >
-                    {paymentStatus.description}
-                  </Typography>
-                  
-                  {/* Hiển thị thông tin chi tiết */}
-                  <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      Chi tiết:
-                    </Typography>
-                    <Typography variant="body2" sx={{ mt: 0.5 }}>
-                      • Tổng tiền: {formatPrice(formData.financials.totalAmount)}
-                    </Typography>
-                    <Typography variant="body2">
-                      • Đã thanh toán: {formatPrice(parseCurrency(formData.financials.amountPaid || '0'))}
-                    </Typography>
-                    <Typography variant="body2">
-                      • Còn lại: {formatPrice(formData.financials.amountRemaining)}
-                    </Typography>
-                    <Typography variant="body2">
-                      • Trạng thái: {formData.financials.isFullyPaid ? 'Đã thanh toán đầy đủ' : 'Chưa thanh toán đầy đủ'}
-                    </Typography>
+                <Grid item xs={12} md={6}>
+                  {/* Thông tin dịch vụ */}
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h4" sx={{ mb: 2 }}>Thông tin dịch vụ</Typography>
+                    <TableContainer>
+                      <Table stickyHeader aria-label="bảng dịch vụ">
+                        <TableHead>
+                          <TableRow>
+                            {columns.map((column) => (
+                              <TableCell
+                                key={column.id}
+                                align={column.align}
+                                style={{ minWidth: column.minWidth }}
+                                sx={{ backgroundColor: theme.palette.primary.light }}
+                              >
+                                {column.label}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {loading ? (
+                            <TableRow>
+                              <TableCell colSpan={4} align="center">
+                                <CircularProgress />
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            formData.services.map((row) => (
+                              <TableRow hover tabIndex={-1} key={row._id || row.id}>
+                                <TableCell>{row.serviceType}</TableCell>
+                                <TableCell>{formatDate(row.serviceId.registeredAt)}</TableCell>
+                                <TableCell>{formatDate(row.serviceId.expiredAt)}</TableCell>
+                                <TableCell>{row.serviceId.vatIncluded ? 'Có' : 'Không'}</TableCell>
+                                {/* <TableCell>
+                                  <IconButton size="small" onClick={() => toggleCollapse(row._id)}>
+                                    <IconChevronUp />
+                                  </IconButton>
+                                </TableCell> */}
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
                   </Box>
-                </Box>
-              </Box>
+                </Grid>
+              </Grid>
 
               {/* Nút điều khiển */}
               <Box sx={{ display: 'flex', gap: 2 }}>

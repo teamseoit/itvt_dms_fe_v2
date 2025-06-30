@@ -35,10 +35,9 @@ import { formatDateTime, maskPhoneNumber } from '../../utils/formatConstants';
 
 const columns = [
   { id: 'actions', label: 'Thao tác', minWidth: 60 },
-  { id: 'fullName', label: 'Tên khách hàng / Số điện thoại', minWidth: 180 },
+  { id: 'fullName', label: 'Tên khách hàng / Số điện thoại', minWidth: 200 },
   { id: 'email', label: 'Email', minWidth: 130 },
-  { id: 'gender', label: 'Giới tính', minWidth: 60 },
-  { id: 'address', label: 'Địa chỉ', minWidth: 220 },
+  { id: 'address', label: 'Địa chỉ', minWidth: 250 },
   { id: 'type', label: 'Loại khách hàng', minWidth: 150 },
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 130 }
 ];
@@ -322,9 +321,8 @@ export default function CustomerList() {
                             </IconButton>
                           )}
                         </TableCell>
-                        <TableCell>{row.fullName}<br/>{maskPhoneNumber(row.phoneNumber)}</TableCell>
+                        <TableCell>{row.gender === 0 ? 'Anh' : 'Chị'} {row.fullName}<br/>{maskPhoneNumber(row.phoneNumber)}</TableCell>
                         <TableCell>{row.email}</TableCell>
-                        <TableCell>{row.gender === 0 ? 'Nam' : 'Nữ'}</TableCell>
                         <TableCell
                           sx={{
                             maxWidth: 220,
