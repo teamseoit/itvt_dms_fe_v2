@@ -1,43 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
-import { toast } from 'react-toastify';
 import {
-  Box,
-  Button,
-  Typography,
-  Paper,
-  TextField,
-  Grid,
-  CircularProgress,
-  TableContainer,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  IconButton
+  Box, Button, Typography, Paper, TextField, Grid, CircularProgress,
+  TableContainer, Table, TableHead, TableBody, TableRow, TableCell
 } from '@mui/material';
-import { IconArrowLeft, IconChevronUp } from '@tabler/icons-react';
+import { IconArrowLeft } from '@tabler/icons-react';
+import { toast } from 'react-toastify';
 
 import CONTRACT_API from '../../services/contractService';
 import usePermissions from '../../hooks/usePermissions';
 import { PERMISSIONS } from '../../constants/permissions';
-import { phoneNumber, formatPrice, formatCurrencyInput, parseCurrency, formatDate } from '../../utils/formatConstants';
+import {
+  phoneNumber, formatPrice, formatCurrencyInput,
+  parseCurrency, formatDate
+} from '../../utils/formatConstants';
 
 const columns = [
-  { id: 'name', label: 'Tên dịch vụ', minWidth: 100 },
+  { id: 'name', label: 'Tên dịch vụ', minWidth: 200 },
   { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 110 },
   { id: 'expiredAt', label: 'Ngày hết hạn', minWidth: 110 },
   { id: 'vat', label: 'VAT', minWidth: 10 }
-  // { id: 'more', label: '', minWidth: 20 }
 ];
 
 export default function ContractUpdate() {
-  const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
+  const theme = useTheme();
   const isEdit = Boolean(id);
+
+  const { hasPermission } = usePermissions();
+  const canUpdate = isEdit && hasPermission(PERMISSIONS.CONTRACT.UPDATE);
 
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -51,10 +44,7 @@ export default function ContractUpdate() {
       isFullyPaid: false
     }
   });
-
   const [errors, setErrors] = useState({});
-
-  const { hasPermission } = usePermissions();
 
   useEffect(() => {
     if (!isEdit) {
@@ -62,66 +52,54 @@ export default function ContractUpdate() {
       navigate('/hop-dong');
       return;
     }
-  }, [isEdit, navigate]);
 
-  const fetchContractData = async () => {
-    try {
-      setLoading(true);
-      const res = await CONTRACT_API.getById(id);
-      if (res?.data?.success) {
-        const contract = res.data.data;
-        setFormData({
-          contractCode: contract.contractCode || '',
-          customer: contract.customer || '',
-          services: contract.services || [],
-          financials: {
-            totalAmount: contract.financials?.totalAmount || 0,
-            amountPaid: formatCurrencyInput((contract.financials?.amountPaid || 0).toString()),
-            amountRemaining: contract.financials?.amountRemaining || 0,
-            isFullyPaid: contract.financials?.isFullyPaid || false
-          }
-        });
-      } else {
-        toast.error('Không tìm thấy thông tin hợp đồng');
+    const fetchContractData = async () => {
+      try {
+        setLoading(true);
+        const res = await CONTRACT_API.getById(id);
+        if (res?.data?.success) {
+          const contract = res.data.data;
+          const { contractCode, customer, services, financials } = contract;
+          const paid = formatCurrencyInput((financials?.amountPaid || 0).toString());
+
+          setFormData({
+            contractCode,
+            customer,
+            services,
+            financials: {
+              totalAmount: financials?.totalAmount || 0,
+              amountPaid: paid,
+              amountRemaining: financials?.amountRemaining || 0,
+              isFullyPaid: financials?.isFullyPaid || false
+            }
+          });
+        } else {
+          throw new Error();
+        }
+      } catch (err) {
+        toast.error('Lỗi khi tải thông tin hợp đồng');
         navigate('/hop-dong');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Lỗi khi tải thông tin hợp đồng');
-      navigate('/hop-dong');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  useEffect(() => {
-    if (isEdit) {
-      fetchContractData();
-    }
-  }, [id]);
+    fetchContractData();
+  }, [id, isEdit, navigate]);
+
+  const handleBack = () => navigate('/hop-dong');
 
   const validateForm = () => {
+    const { totalAmount, amountPaid, amountRemaining, isFullyPaid } = formData.financials;
+    const paid = parseCurrency(amountPaid || '0');
+    const calcRemaining = totalAmount - paid;
+    const expectedIsPaid = paid <= totalAmount && calcRemaining <= 0;
+
     const newErrors = {};
-
-    if (formData.financials.totalAmount < 0) {
-      newErrors.totalAmount = 'Tổng tiền không được âm';
-    }
-
-    const parsedAmountPaid = parseCurrency(formData.financials.amountPaid || '0');
-    if (parsedAmountPaid < 0) {
-      newErrors.amountPaid = 'Số tiền đã thanh toán không được âm';
-    }
-
-    if (parsedAmountPaid > formData.financials.totalAmount) {
-      newErrors.amountPaid = 'Số tiền đã thanh toán không được lớn hơn tổng tiền hợp đồng';
-    }
-
-    // Validation cho isFullyPaid
-    const calculatedAmountRemaining = formData.financials.totalAmount - parsedAmountPaid;
-    const calculatedIsFullyPaid = parsedAmountPaid <= formData.financials.totalAmount && calculatedAmountRemaining <= 0;
-    
-    if (formData.financials.isFullyPaid !== calculatedIsFullyPaid) {
-      newErrors.isFullyPaid = 'Trạng thái thanh toán không khớp với số tiền đã thanh toán';
-    }
+    if (totalAmount < 0) newErrors.totalAmount = 'Tổng tiền không được âm';
+    if (paid < 0) newErrors.amountPaid = 'Số tiền đã thanh toán không được âm';
+    if (paid > totalAmount) newErrors.amountPaid = 'Số tiền đã thanh toán không được lớn hơn tổng tiền hợp đồng';
+    if (isFullyPaid !== expectedIsPaid) newErrors.isFullyPaid = 'Trạng thái thanh toán không khớp với số tiền đã thanh toán';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -129,89 +107,31 @@ export default function ContractUpdate() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      
-      // Xử lý đặc biệt cho amountPaid với định dạng tiền tệ
-      if (parent === 'financials' && child === 'amountPaid') {
-        const formattedValue = formatCurrencyInput(value);
-        setFormData((prev) => {
-          const newData = {
-            ...prev,
-            [parent]: {
-              ...prev[parent],
-              [child]: formattedValue
-            }
-          };
-          
-          // Tự động tính toán amountRemaining và isFullyPaid khi thay đổi amountPaid
-          const parsedAmountPaid = parseCurrency(formattedValue);
-          const newTotalAmount = newData.financials.totalAmount;
-          
-          newData.financials.amountRemaining = newTotalAmount - parsedAmountPaid;
-          newData.financials.isFullyPaid = parsedAmountPaid <= newTotalAmount && newData.financials.amountRemaining <= 0;
-          
-          return newData;
-        });
 
-        // Validation real-time cho amountPaid
-        const parsedAmountPaid = parseCurrency(formattedValue);
-        const totalAmount = formData.financials.totalAmount;
-        
-        if (parsedAmountPaid < 0) {
-          setErrors((prev) => ({
-            ...prev,
-            amountPaid: 'Số tiền đã thanh toán không được âm'
-          }));
-        } else if (parsedAmountPaid > totalAmount) {
-          setErrors((prev) => ({
-            ...prev,
-            amountPaid: 'Số tiền đã thanh toán không được lớn hơn tổng tiền hợp đồng'
-          }));
-        } else {
-          setErrors((prev) => ({
-            ...prev,
-            amountPaid: ''
-          }));
-        }
-        return;
-      }
-      
-      // Xử lý cho các trường khác trong financials
-      setFormData((prev) => {
-        const newData = {
-          ...prev,
-          [parent]: {
-            ...prev[parent],
-            [child]: Number(value) || 0
-          }
-        };
-        
-        // Tự động tính toán amountRemaining và isFullyPaid khi thay đổi totalAmount
-        if (parent === 'financials' && child === 'totalAmount') {
-          const newTotalAmount = Number(value) || 0;
-          const currentAmountPaid = parseCurrency(newData.financials.amountPaid || '0');
-          
-          newData.financials.amountRemaining = newTotalAmount - currentAmountPaid;
-          newData.financials.isFullyPaid = currentAmountPaid <= newTotalAmount && newData.financials.amountRemaining <= 0;
-        }
-        
-        return newData;
-      });
-    } else {
+    if (name === 'financials.amountPaid') {
+      const formatted = formatCurrencyInput(value);
+      const paid = parseCurrency(formatted);
+      const total = formData.financials.totalAmount;
+      const remaining = total - paid;
+      const isFullyPaid = paid <= total && remaining <= 0;
+
       setFormData((prev) => ({
         ...prev,
-        [name]: value
+        financials: {
+          ...prev.financials,
+          amountPaid: formatted,
+          amountRemaining: remaining,
+          isFullyPaid
+        }
       }));
-    }
 
-    // Clear error when user starts typing (cho các trường khác)
-    if (errors[name] && !name.includes('.')) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: ''
-      }));
+      if (paid < 0) {
+        setErrors((prev) => ({ ...prev, amountPaid: 'Số tiền đã thanh toán không được âm' }));
+      } else if (paid > total) {
+        setErrors((prev) => ({ ...prev, amountPaid: 'Số tiền đã thanh toán không được lớn hơn tổng tiền hợp đồng' }));
+      } else {
+        setErrors((prev) => ({ ...prev, amountPaid: '' }));
+      }
     }
   };
 
@@ -219,18 +139,14 @@ export default function ContractUpdate() {
     e.preventDefault();
     if (!validateForm()) return;
 
-    if (!hasPermission(PERMISSIONS.CONTRACT.UPDATE)) {
+    if (!canUpdate) {
       toast.error('Bạn không có quyền cập nhật hợp đồng');
       return;
     }
 
     try {
       setLoading(true);
-      
-      const payload = {
-        amountPaid: parseCurrency(formData.financials.amountPaid)
-      }
-      
+      const payload = { amountPaid: parseCurrency(formData.financials.amountPaid) };
       const res = await CONTRACT_API.update(id, payload);
 
       if (res?.data?.success) {
@@ -246,76 +162,25 @@ export default function ContractUpdate() {
     }
   };
 
-  const handleBack = () => navigate('/hop-dong');
-
-  const canUpdate = isEdit && hasPermission(PERMISSIONS.CONTRACT.UPDATE);
-
-  // Hàm tính toán trạng thái thanh toán
-  const getPaymentStatus = () => {
+  const renderPaymentStatus = () => {
     const { totalAmount, amountPaid, amountRemaining, isFullyPaid } = formData.financials;
-    const parsedAmountPaid = parseCurrency(amountPaid || '0');
-    
-    // Kiểm tra tính nhất quán
-    const calculatedRemaining = totalAmount - parsedAmountPaid;
-    const calculatedIsFullyPaid = parsedAmountPaid <= totalAmount && calculatedRemaining <= 0;
-    
-    // Kiểm tra lỗi khi amountPaid > totalAmount
-    if (parsedAmountPaid > totalAmount) {
-      return {
-        status: 'error',
-        message: '❌ Lỗi: Số tiền thanh toán vượt quá tổng tiền',
-        description: `Đã thanh toán ${formatPrice(parsedAmountPaid)} vượt quá tổng tiền ${formatPrice(totalAmount)}`
-      };
+    const paid = parseCurrency(amountPaid || '0');
+
+    if (isFullyPaid) {
+      return { status: 'success', message: '✅ Đã thanh toán đầy đủ', desc: `${formatPrice(paid)} / ${formatPrice(totalAmount)}` };
     }
-    
-    if (Math.abs(calculatedRemaining - amountRemaining) > 0.01) {
-      return {
-        status: 'error',
-        message: '❌ Dữ liệu không nhất quán',
-        description: 'Số tiền còn lại không khớp với tính toán'
-      };
+    if (paid > totalAmount) {
+      return { status: 'error', message: '❌ Lỗi: Số tiền vượt quá', desc: `Thanh toán ${formatPrice(paid)} > ${formatPrice(totalAmount)}` };
     }
-    
-    if (isFullyPaid !== calculatedIsFullyPaid) {
-      return {
-        status: 'error',
-        message: '❌ Trạng thái thanh toán không chính xác',
-        description: 'Trạng thái thanh toán không khớp với số tiền'
-      };
-    }
-    
-    if (isFullyPaid && parsedAmountPaid <= totalAmount) {
-      return {
-        status: 'success',
-        message: '✅ Đã thanh toán đầy đủ',
-        description: `Đã thanh toán: ${formatPrice(parsedAmountPaid)} / ${formatPrice(totalAmount)}`
-      };
-    } else {
-      return {
-        status: 'warning',
-        message: '⚠️ Chưa thanh toán đầy đủ',
-        description: `Còn nợ: ${formatPrice(amountRemaining)} (${((amountRemaining / totalAmount) * 100).toFixed(1)}%)`
-      };
-    }
+    return { status: 'warning', message: '⚠️ Chưa thanh toán đủ', desc: `Còn nợ: ${formatPrice(amountRemaining)}` };
   };
 
-  const paymentStatus = getPaymentStatus();
+  const status = renderPaymentStatus();
 
   if (!canUpdate) {
     return (
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Button
-            variant="text"
-            color="primary"
-            onClick={handleBack}
-            startIcon={<IconArrowLeft />}
-            sx={{ mr: 2 }}
-          >
-            Quay lại
-          </Button>
-          <Typography variant="h3">Cập nhật hợp đồng</Typography>
-        </Box>
+        <BackHeader onBack={handleBack} />
         <Paper sx={{ p: 3 }}>
           <Typography variant="h4" color="error">Bạn không có quyền cập nhật hợp đồng!</Typography>
         </Paper>
@@ -324,205 +189,30 @@ export default function ContractUpdate() {
   }
 
   if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingIndicator />;
   }
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Button
-          variant="text"
-          color="primary"
-          onClick={handleBack}
-          startIcon={<IconArrowLeft />}
-          sx={{ mr: 2 }}
-        >
-          Quay lại
-        </Button>
-        <Typography variant="h3">Cập nhật hợp đồng</Typography>
-      </Box>
-
+      <BackHeader onBack={handleBack} />
       <Paper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Typography variant="h3" sx={{ mb: 3 }}>Chi tiết hợp đồng</Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  {/* Thông tin cơ bản */}
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="h4" sx={{ mb: 2 }}>Thông tin cơ bản</Typography>
-                    <Typography variant="subtitle1">- Mã hợp đồng: {formData.contractCode}</Typography>
-                    <Typography variant="subtitle1">- Khách hàng: {formData.customer?.gender == 0 ? 'Anh' : 'Chị'} {formData.customer?.fullName} / {phoneNumber(formData.customer?.phoneNumber)} / {formData.customer?.email}</Typography>
-                  </Box>
-                  {/* Thông tin tài chính */}
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="h4" sx={{ mb: 2 }}>Thông tin tài chính</Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Tổng tiền hợp đồng"
-                          name="financials.totalAmount"
-                          value={formatPrice(formData.financials.totalAmount)}
-                          helperText={errors.totalAmount || `Giá trị: ${formatPrice(formData.financials.totalAmount)}`}
-                          disabled
-                        />
-                      </Grid>
 
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Số tiền đã thanh toán"
-                          name="financials.amountPaid"
-                          value={formData.financials.amountPaid}
-                          onChange={handleChange}
-                          error={!!errors.amountPaid}
-                          helperText={
-                            errors.amountPaid 
-                              ? errors.amountPaid 
-                              : `Giá trị: ${formatPrice(parseCurrency(formData.financials.amountPaid || '0'))} | Tối đa: ${formatPrice(formData.financials.totalAmount)}`
-                          }
-                          disabled={formData.financials.isFullyPaid || loading}
-                          InputProps={{
-                            inputMode: 'numeric',
-                          }}
-                        />
-                      </Grid>
+              <ContractBasicInfo data={formData} />
+              <ContractFinancialInfo
+                data={formData}
+                errors={errors}
+                onChange={handleChange}
+                status={status}
+              />
+              <ContractServiceTable services={formData.services} theme={theme} loading={loading} />
 
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Số tiền còn lại"
-                          value={formatPrice(formData.financials.amountRemaining)}
-                          disabled
-                          sx={{
-                            '& .MuiInputBase-input': {
-                              color: formData.financials.amountRemaining > 0 ? 'error.main' : 'success.main',
-                              fontWeight: 'bold'
-                            }
-                          }}
-                        />
-                      </Grid>
-                    </Grid>
-
-                    {/* Thông tin trạng thái thanh toán */}
-                    <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                        Trạng thái thanh toán:
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        color={
-                          paymentStatus.status === 'success' ? 'success.main' : 
-                          paymentStatus.status === 'warning' ? 'warning.main' : 
-                          'error.main'
-                        }
-                        sx={{ fontWeight: 'bold', mb: 1 }}
-                      >
-                        {paymentStatus.message}
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        color={
-                          paymentStatus.status === 'success' ? 'success.main' : 
-                          paymentStatus.status === 'warning' ? 'error.main' : 
-                          'error.main'
-                        }
-                      >
-                        {paymentStatus.description}
-                      </Typography>
-                      
-                      {/* Hiển thị thông tin chi tiết */}
-                      <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                        <Typography variant="caption" color="text.secondary">
-                          Chi tiết:
-                        </Typography>
-                        <Typography variant="body2" sx={{ mt: 0.5 }}>
-                          • Tổng tiền: {formatPrice(formData.financials.totalAmount)}
-                        </Typography>
-                        <Typography variant="body2">
-                          • Đã thanh toán: {formatPrice(parseCurrency(formData.financials.amountPaid || '0'))}
-                        </Typography>
-                        <Typography variant="body2">
-                          • Còn lại: {formatPrice(formData.financials.amountRemaining)}
-                        </Typography>
-                        <Typography variant="body2">
-                          • Trạng thái: {formData.financials.isFullyPaid ? 'Đã thanh toán đầy đủ' : 'Chưa thanh toán đầy đủ'}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  {/* Thông tin dịch vụ */}
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="h4" sx={{ mb: 2 }}>Thông tin dịch vụ</Typography>
-                    <TableContainer>
-                      <Table stickyHeader aria-label="bảng dịch vụ">
-                        <TableHead>
-                          <TableRow>
-                            {columns.map((column) => (
-                              <TableCell
-                                key={column.id}
-                                align={column.align}
-                                style={{ minWidth: column.minWidth }}
-                                sx={{ backgroundColor: theme.palette.primary.light }}
-                              >
-                                {column.label}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {loading ? (
-                            <TableRow>
-                              <TableCell colSpan={4} align="center">
-                                <CircularProgress />
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            formData.services.map((row) => (
-                              <TableRow hover tabIndex={-1} key={row._id || row.id}>
-                                <TableCell>{row.serviceId.name}</TableCell>
-                                <TableCell>{formatDate(row.serviceId.registeredAt)}</TableCell>
-                                <TableCell>{formatDate(row.serviceId.expiredAt)}</TableCell>
-                                <TableCell>{row.serviceId.vatIncluded ? 'Có' : 'Không'}</TableCell>
-                                {/* <TableCell>
-                                  <IconButton size="small" onClick={() => toggleCollapse(row._id)}>
-                                    <IconChevronUp />
-                                  </IconButton>
-                                </TableCell> */}
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Box>
-                </Grid>
-              </Grid>
-
-              {/* Nút điều khiển */}
               <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  variant="outlined"
-                  onClick={handleBack}
-                  disabled={loading}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={formData.financials.isFullyPaid || loading}
-                >
+                <Button variant="outlined" onClick={handleBack}>Hủy</Button>
+                <Button type="submit" variant="contained" disabled={formData.financials.isFullyPaid || loading}>
                   {loading ? <CircularProgress size={20} /> : 'Cập nhật'}
                 </Button>
               </Box>
@@ -533,3 +223,112 @@ export default function ContractUpdate() {
     </Box>
   );
 }
+
+const BackHeader = ({ onBack }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+    <Button variant="text" startIcon={<IconArrowLeft />} onClick={onBack}>Quay lại</Button>
+    <Typography variant="h3" sx={{ ml: 2 }}>Cập nhật hợp đồng</Typography>
+  </Box>
+);
+
+const LoadingIndicator = () => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+    <CircularProgress />
+  </Box>
+);
+
+const ContractBasicInfo = ({ data }) => (
+  <Box sx={{ mb: 3 }}>
+    <Typography variant="h4" sx={{ mb: 2 }}>Thông tin cơ bản</Typography>
+    <Typography variant="subtitle1">- Mã hợp đồng: {data.contractCode}</Typography>
+    <Typography variant="subtitle1">
+      - Khách hàng: {data.customer?.gender === 0 ? 'Anh' : 'Chị'} {data.customer?.fullName} / {phoneNumber(data.customer?.phoneNumber)} / {data.customer?.email}
+    </Typography>
+  </Box>
+);
+
+const ContractFinancialInfo = ({ data, errors, onChange, status }) => {
+  const { totalAmount, amountPaid, amountRemaining, isFullyPaid } = data.financials;
+  return (
+    <Box sx={{ mb: 3 }}>
+      <Typography variant="h4" sx={{ mb: 2 }}>Thông tin tài chính</Typography>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <TextField fullWidth label="Tổng tiền hợp đồng" value={formatPrice(totalAmount)} disabled />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Số tiền đã thanh toán"
+            name="financials.amountPaid"
+            value={amountPaid}
+            onChange={onChange}
+            error={!!errors.amountPaid}
+            helperText={errors.amountPaid || `Tối đa: ${formatPrice(totalAmount)}`}
+            disabled={isFullyPaid}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Số tiền còn lại"
+            value={formatPrice(amountRemaining)}
+            disabled
+            sx={{
+              '& .MuiInputBase-input': {
+                color: amountRemaining > 0 ? 'error.main' : 'success.main',
+                fontWeight: 'bold'
+              }
+            }}
+          />
+        </Grid>
+      </Grid>
+      <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+        <Typography variant="subtitle2">Trạng thái thanh toán:</Typography>
+        <Typography variant="body2" color={`${status.status}.main`} fontWeight="bold">
+          {status.message}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">{status.desc}</Typography>
+      </Box>
+    </Box>
+  );
+};
+
+const ContractServiceTable = ({ services, theme, loading }) => (
+  <Box sx={{ mb: 3 }}>
+    <Typography variant="h4" sx={{ mb: 2 }}>Thông tin dịch vụ</Typography>
+    <TableContainer>
+      <Table stickyHeader>
+        <TableHead>
+          <TableRow>
+            {columns.map(col => (
+              <TableCell key={col.id} sx={{ minWidth: col.minWidth, backgroundColor: theme.palette.primary.light }}>
+                {col.label}
+              </TableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {loading ? (
+            <TableRow><TableCell colSpan={4} align="center"><CircularProgress /></TableCell></TableRow>
+          ) : (
+            services.map((row) => (
+              <TableRow hover key={row._id}>
+                <TableCell>
+                  <Typography variant="subtitle1">
+                    {row.serviceType === 'hosting'
+                      ? row.serviceId.hostingPlanId.name
+                      : row.serviceId.name}
+                  </Typography>
+                </TableCell>
+                <TableCell>{formatDate(row.serviceId.registeredAt)}</TableCell>
+                <TableCell>{formatDate(row.serviceId.expiredAt)}</TableCell>
+                <TableCell>{row.serviceId.vatIncluded ? 'Có' : 'Không'}</TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  </Box>
+);
