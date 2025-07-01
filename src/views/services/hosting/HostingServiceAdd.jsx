@@ -235,11 +235,10 @@ export default function HostingServiceAdd() {
                 value={formData.hostingPlanId}
                 onChange={handleChange}
                 label="Gói hosting"
-                disabled={isEdit}
               >
                 {hostingPlans.map((plan) => (
                   <MenuItem key={plan._id} value={plan._id}>
-                    {plan.name}
+                    {plan.name} - {plan.supplierId.name}
                   </MenuItem>
                 ))}
               </Select>

@@ -302,7 +302,7 @@ export default function DomainServiceAdd() {
             >
               {domainPlans.map((plan) => (
                 <MenuItem key={plan._id} value={plan._id}>
-                  {plan.extension}
+                  {plan.extension} - {plan.supplierId.name}
                 </MenuItem>
               ))}
             </Select>
