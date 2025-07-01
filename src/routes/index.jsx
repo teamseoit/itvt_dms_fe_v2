@@ -61,6 +61,8 @@ const ServerPlanAdd = Loadable(lazy(() => import('views/plans/server/ServerPlanA
 // Service Management
 const DomainServiceList = Loadable(lazy(() => import('views/services/domain/DomainServiceList.jsx')));
 const DomainServiceAdd = Loadable(lazy(() => import('views/services/domain/DomainServiceAdd.jsx')));
+const HostingServiceList = Loadable(lazy(() => import('views/services/hosting/HostingServiceList.jsx')));
+const HostingServiceAdd = Loadable(lazy(() => import('views/services/hosting/HostingServiceAdd.jsx')));
 
 // Contract Management
 const ContractList = Loadable(lazy(() => import('views/contract/ContractList.jsx')));
@@ -373,6 +375,18 @@ const router = createBrowserRouter([
                 path: 'ten-mien/:id',
                 element: <DomainServiceAdd />
               },
+              {
+                path: 'hosting',
+                element: <HostingServiceList />
+              },
+              {
+                path: 'hosting/them-moi',
+                element: <HostingServiceAdd />
+              },
+              {
+                path: 'hosting/:id',
+                element: <HostingServiceAdd />
+              }
             ]
           },
           {
