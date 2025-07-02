@@ -320,6 +320,8 @@ const ContractServiceTable = ({ services, theme, loading }) => (
                       ? row.serviceId.hostingPlanId.name
                       : row.serviceType === 'ssl'
                       ? row.serviceId.sslPlanId.name
+                      : row.serviceType === 'email'
+                      ? row.serviceId.emailPlanId.name
                       : row.serviceId.name}
                   </Typography>
                 </TableCell>

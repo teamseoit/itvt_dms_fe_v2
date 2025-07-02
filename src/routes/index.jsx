@@ -63,6 +63,8 @@ const DomainServiceList = Loadable(lazy(() => import('views/services/domain/Doma
 const DomainServiceAdd = Loadable(lazy(() => import('views/services/domain/DomainServiceAdd.jsx')));
 const HostingServiceList = Loadable(lazy(() => import('views/services/hosting/HostingServiceList.jsx')));
 const HostingServiceAdd = Loadable(lazy(() => import('views/services/hosting/HostingServiceAdd.jsx')));
+const EmailServiceList = Loadable(lazy(() => import('views/services/email/EmailServiceList.jsx')));
+const EmailServiceAdd = Loadable(lazy(() => import('views/services/email/EmailServiceAdd.jsx')));
 const SslServiceList = Loadable(lazy(() => import('views/services/ssl/SslServiceList.jsx')));
 const SslServiceAdd = Loadable(lazy(() => import('views/services/ssl/SslServiceAdd.jsx')));
 
@@ -388,6 +390,18 @@ const router = createBrowserRouter([
               {
                 path: 'hosting/:id',
                 element: <HostingServiceAdd />
+              },
+              {
+                path: 'email',
+                element: <EmailServiceList />
+              },
+              {
+                path: 'email/them-moi',
+                element: <EmailServiceAdd />
+              },
+              {
+                path: 'email/:id',
+                element: <EmailServiceAdd />
               },
               {
                 path: 'ssl',
