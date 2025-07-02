@@ -89,10 +89,10 @@ export default function ContractUpdate() {
 
   const handleBack = () => navigate('/hop-dong');
 
-  const calculatePaymentStatus = (total, paid, paidNext = 0, hasHistory = false) => {
-    const actualPaid = hasHistory ? paid + paidNext : paid;
+  const calculatePaymentStatus = (total, paid, paidNext = 0, includePaidNext = false) => {
+    const actualPaid = includePaidNext ? paid + paidNext : paid;
     const remaining = total - actualPaid;
-    const isFullyPaid = actualPaid <= total && remaining <= 0;
+    const isFullyPaid = actualPaid >= total;
     return { actualPaid, remaining, isFullyPaid };
   };
 
@@ -100,7 +100,7 @@ export default function ContractUpdate() {
     const { totalAmount, amountPaid } = formData.financials;
     const paid = parseCurrency(amountPaid || '0');
     const paidNext = parseCurrency(amountPaidNext || '0');
-    const { actualPaid, remaining, isFullyPaid: expectedPaidStatus } = calculatePaymentStatus(totalAmount, paid, paidNext, paymentHistory.length > 0);
+    const { actualPaid, remaining, isFullyPaid: expectedPaidStatus } = calculatePaymentStatus(totalAmount, paid, paidNext, true);
 
     const newErrors = {};
     if (totalAmount < 0) newErrors.totalAmount = 'Tổng tiền không được âm';
@@ -152,7 +152,7 @@ export default function ContractUpdate() {
         formData.financials.totalAmount,
         parseCurrency(formData.financials.amountPaid),
         paidNext,
-        paymentHistory.length > 0
+        true
       );
 
       const res = await CONTRACT_API.update(id, { amountPaid, isFullyPaid });
@@ -171,10 +171,10 @@ export default function ContractUpdate() {
 
   const paid = parseCurrency(formData.financials.amountPaid || '0');
   const paidNext = parseCurrency(amountPaidNext || '0');
-  const calculatedStatus = calculatePaymentStatus(formData.financials.totalAmount, paid, paidNext, paymentHistory.length > 0);
+  const calculatedStatus = calculatePaymentStatus(formData.financials.totalAmount, paid, paidNext, false);
 
   const renderPaymentStatus = () => {
-    if (calculatedStatus.isFullyPaid) return { status: 'success', message: '✅ Đã thanh toán đầy đủ', desc: `${formatPrice(calculatedStatus.actualPaid)} / ${formatPrice(formData.financials.totalAmount)}` };
+    if (formData.financials.isFullyPaid) return { status: 'success', message: '✅ Đã thanh toán đầy đủ', desc: `${formatPrice(paid)} / ${formatPrice(formData.financials.totalAmount)}` };
     if (calculatedStatus.actualPaid > formData.financials.totalAmount) return { status: 'error', message: '❌ Lỗi: Số tiền vượt quá', desc: `Thanh toán ${formatPrice(calculatedStatus.actualPaid)} > ${formatPrice(formData.financials.totalAmount)}` };
     return { status: 'warning', message: '⚠️ Chưa thanh toán đủ', desc: `Còn nợ: ${formatPrice(calculatedStatus.remaining)}` };
   };
@@ -206,7 +206,7 @@ export default function ContractUpdate() {
               <PaymentHistoryTable paymentHistory={paymentHistory} theme={theme} />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Button variant="outlined" onClick={handleBack}>Hủy</Button>
-                <Button type="submit" variant="contained" disabled={loading || calculatedStatus.isFullyPaid}>
+                <Button type="submit" variant="contained" disabled={loading || formData.financials.isFullyPaid}>
                   {loading ? <CircularProgress size={20} /> : 'Cập nhật'}
                 </Button>
               </Box>
