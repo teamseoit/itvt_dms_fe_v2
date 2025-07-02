@@ -1,3 +1,4 @@
+// ContractUpdateRefactor.js
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
@@ -28,24 +29,17 @@ export default function ContractUpdate() {
   const { id } = useParams();
   const theme = useTheme();
   const isEdit = Boolean(id);
-
   const { hasPermission } = usePermissions();
   const canUpdate = isEdit && hasPermission(PERMISSIONS.CONTRACT.UPDATE);
 
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    contractCode: '',
-    customer: '',
-    services: [],
-    financials: {
-      totalAmount: 0,
-      amountPaid: 0,
-      amountRemaining: 0,
-      isFullyPaid: false
-    }
+    contractCode: '', customer: '', services: [],
+    financials: { totalAmount: 0, amountPaid: 0, amountRemaining: 0, isFullyPaid: false }
   });
   const [errors, setErrors] = useState({});
   const [paymentHistory, setPaymentHistory] = useState([]);
+  const [amountPaidNext, setAmountPaidNext] = useState('');
 
   useEffect(() => {
     if (!isEdit) {
@@ -53,31 +47,23 @@ export default function ContractUpdate() {
       navigate('/hop-dong');
       return;
     }
-
     const fetchContractData = async () => {
       try {
         setLoading(true);
         const res = await CONTRACT_API.getById(id);
         if (res?.data?.success) {
-          const contract = res.data.data;
-          const { contractCode, customer, services, financials } = contract;
-          const paid = formatCurrencyInput((financials?.amountPaid || 0).toString());
-
+          const { contractCode, customer, services, financials } = res.data.data;
           setFormData({
-            contractCode,
-            customer,
-            services,
+            contractCode, customer, services,
             financials: {
-              totalAmount: financials?.totalAmount || 0,
-              amountPaid: paid,
-              amountRemaining: financials?.amountRemaining || 0,
-              isFullyPaid: financials?.isFullyPaid || false
+              totalAmount: financials.totalAmount || 0,
+              amountPaid: formatCurrencyInput((financials.amountPaid || 0).toString()),
+              amountRemaining: financials.amountRemaining || 0,
+              isFullyPaid: financials.isFullyPaid || false
             }
           });
-        } else {
-          throw new Error();
-        }
-      } catch (err) {
+        } else throw new Error();
+      } catch {
         toast.error('Lỗi khi tải thông tin hợp đồng');
         navigate('/hop-dong');
       } finally {
@@ -88,15 +74,10 @@ export default function ContractUpdate() {
     const fetchPaymentHistory = async () => {
       try {
         const res = await CONTRACT_API.getPaymentHistory(id);
-        if (res?.data?.success) {
-          setPaymentHistory(res.data.data);
-        } else {
-          throw new Error();
-        }
-      } catch (err) {
+        if (res?.data?.success) setPaymentHistory(res.data.data);
+        else throw new Error();
+      } catch {
         toast.error('Lỗi khi tải lịch sử thanh toán');
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -104,19 +85,28 @@ export default function ContractUpdate() {
     fetchPaymentHistory();
   }, [id, isEdit, navigate]);
 
+  useEffect(() => setAmountPaidNext(''), [paymentHistory]);
+
   const handleBack = () => navigate('/hop-dong');
 
+  const calculatePaymentStatus = (total, paid, paidNext = 0, hasHistory = false) => {
+    const actualPaid = hasHistory ? paid + paidNext : paid;
+    const remaining = total - actualPaid;
+    const isFullyPaid = actualPaid <= total && remaining <= 0;
+    return { actualPaid, remaining, isFullyPaid };
+  };
+
   const validateForm = () => {
-    const { totalAmount, amountPaid, amountRemaining, isFullyPaid } = formData.financials;
+    const { totalAmount, amountPaid } = formData.financials;
     const paid = parseCurrency(amountPaid || '0');
-    const calcRemaining = totalAmount - paid;
-    const expectedIsPaid = paid <= totalAmount && calcRemaining <= 0;
+    const paidNext = parseCurrency(amountPaidNext || '0');
+    const { actualPaid, remaining, isFullyPaid: expectedPaidStatus } = calculatePaymentStatus(totalAmount, paid, paidNext, paymentHistory.length > 0);
 
     const newErrors = {};
     if (totalAmount < 0) newErrors.totalAmount = 'Tổng tiền không được âm';
     if (paid < 0) newErrors.amountPaid = 'Số tiền đã thanh toán không được âm';
-    if (paid > totalAmount) newErrors.amountPaid = 'Số tiền đã thanh toán không được lớn hơn tổng tiền hợp đồng';
-    if (isFullyPaid !== expectedIsPaid) newErrors.isFullyPaid = 'Trạng thái thanh toán không khớp với số tiền đã thanh toán';
+    if (paidNext < 0) newErrors.amountPaidNext = 'Số tiền thanh toán không được âm';
+    if (actualPaid > totalAmount) newErrors.amountPaidNext = 'Tổng số tiền thanh toán không được lớn hơn tổng tiền hợp đồng';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -124,48 +114,48 @@ export default function ContractUpdate() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === 'financials.amountPaid') {
       const formatted = formatCurrencyInput(value);
       const paid = parseCurrency(formatted);
       const total = formData.financials.totalAmount;
-      const remaining = total - paid;
-      const isFullyPaid = paid <= total && remaining <= 0;
-
-      setFormData((prev) => ({
+      const { remaining } = calculatePaymentStatus(total, paid);
+      setFormData(prev => ({
         ...prev,
-        financials: {
-          ...prev.financials,
-          amountPaid: formatted,
-          amountRemaining: remaining,
-          isFullyPaid
-        }
+        financials: { ...prev.financials, amountPaid: formatted, amountRemaining: remaining }
       }));
-
-      if (paid < 0) {
-        setErrors((prev) => ({ ...prev, amountPaid: 'Số tiền đã thanh toán không được âm' }));
-      } else if (paid > total) {
-        setErrors((prev) => ({ ...prev, amountPaid: 'Số tiền đã thanh toán không được lớn hơn tổng tiền hợp đồng' }));
-      } else {
-        setErrors((prev) => ({ ...prev, amountPaid: '' }));
-      }
+    } else if (name === 'amountPaidNext') {
+      const formatted = formatCurrencyInput(value);
+      setAmountPaidNext(formatted);
+      const paidNext = parseCurrency(formatted);
+      const paid = parseCurrency(formData.financials.amountPaid || '0');
+      const total = formData.financials.totalAmount;
+      const { remaining } = calculatePaymentStatus(total, paid, paidNext, true);
+      setFormData(prev => ({
+        ...prev,
+        financials: { ...prev.financials, amountRemaining: remaining }
+      }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
-    if (!canUpdate) {
-      toast.error('Bạn không có quyền cập nhật hợp đồng');
-      return;
-    }
+    if (!canUpdate) return toast.error('Bạn không có quyền cập nhật hợp đồng');
 
     try {
       setLoading(true);
-      const payload = { amountPaid: parseCurrency(formData.financials.amountPaid) };
-      const res = await CONTRACT_API.update(id, payload);
+      let amountPaid = parseCurrency(formData.financials.amountPaid);
+      const paidNext = parseCurrency(amountPaidNext || '0');
+      if (paymentHistory.length > 0) amountPaid += paidNext;
 
+      const { isFullyPaid } = calculatePaymentStatus(
+        formData.financials.totalAmount,
+        parseCurrency(formData.financials.amountPaid),
+        paidNext,
+        paymentHistory.length > 0
+      );
+
+      const res = await CONTRACT_API.update(id, { amountPaid, isFullyPaid });
       if (res?.data?.success) {
         toast.success('Cập nhật hợp đồng thành công');
         navigate('/hop-dong');
@@ -179,35 +169,25 @@ export default function ContractUpdate() {
     }
   };
 
-  const renderPaymentStatus = () => {
-    const { totalAmount, amountPaid, amountRemaining, isFullyPaid } = formData.financials;
-    const paid = parseCurrency(amountPaid || '0');
+  const paid = parseCurrency(formData.financials.amountPaid || '0');
+  const paidNext = parseCurrency(amountPaidNext || '0');
+  const calculatedStatus = calculatePaymentStatus(formData.financials.totalAmount, paid, paidNext, paymentHistory.length > 0);
 
-    if (isFullyPaid) {
-      return { status: 'success', message: '✅ Đã thanh toán đầy đủ', desc: `${formatPrice(paid)} / ${formatPrice(totalAmount)}` };
-    }
-    if (paid > totalAmount) {
-      return { status: 'error', message: '❌ Lỗi: Số tiền vượt quá', desc: `Thanh toán ${formatPrice(paid)} > ${formatPrice(totalAmount)}` };
-    }
-    return { status: 'warning', message: '⚠️ Chưa thanh toán đủ', desc: `Còn nợ: ${formatPrice(amountRemaining)}` };
+  const renderPaymentStatus = () => {
+    if (calculatedStatus.isFullyPaid) return { status: 'success', message: '✅ Đã thanh toán đầy đủ', desc: `${formatPrice(calculatedStatus.actualPaid)} / ${formatPrice(formData.financials.totalAmount)}` };
+    if (calculatedStatus.actualPaid > formData.financials.totalAmount) return { status: 'error', message: '❌ Lỗi: Số tiền vượt quá', desc: `Thanh toán ${formatPrice(calculatedStatus.actualPaid)} > ${formatPrice(formData.financials.totalAmount)}` };
+    return { status: 'warning', message: '⚠️ Chưa thanh toán đủ', desc: `Còn nợ: ${formatPrice(calculatedStatus.remaining)}` };
   };
 
   const status = renderPaymentStatus();
 
-  if (!canUpdate) {
-    return (
-      <Box>
-        <BackHeader onBack={handleBack} />
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h4" color="error">Bạn không có quyền cập nhật hợp đồng!</Typography>
-        </Paper>
-      </Box>
-    );
-  }
+  if (!canUpdate) return (
+    <Box><BackHeader onBack={handleBack} />
+      <Paper sx={{ p: 3 }}><Typography variant="h4" color="error">Bạn không có quyền cập nhật hợp đồng!</Typography></Paper>
+    </Box>
+  );
 
-  if (loading) {
-    return <LoadingIndicator />;
-  }
+  if (loading) return <LoadingIndicator />;
 
   return (
     <Box>
@@ -217,19 +197,16 @@ export default function ContractUpdate() {
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Typography variant="h3" sx={{ mb: 3 }}>Chi tiết hợp đồng</Typography>
-
               <ContractBasicInfo data={formData} />
               <ContractFinancialInfo
-                data={formData}
-                errors={errors}
-                onChange={handleChange}
-                status={status}
+                data={formData} errors={errors} onChange={handleChange}
+                status={status} paymentHistory={paymentHistory} amountPaidNext={amountPaidNext}
               />
               <ContractServiceTable services={formData.services} theme={theme} loading={loading} />
               <PaymentHistoryTable paymentHistory={paymentHistory} theme={theme} />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Button variant="outlined" onClick={handleBack}>Hủy</Button>
-                <Button type="submit" variant="contained" disabled={formData.financials.isFullyPaid || loading}>
+                <Button type="submit" variant="contained" disabled={loading || calculatedStatus.isFullyPaid}>
                   {loading ? <CircularProgress size={20} /> : 'Cập nhật'}
                 </Button>
               </Box>
@@ -264,47 +241,45 @@ const ContractBasicInfo = ({ data }) => (
   </Box>
 );
 
-const ContractFinancialInfo = ({ data, errors, onChange, status }) => {
+const ContractFinancialInfo = ({ data, errors, onChange, status, paymentHistory, amountPaidNext }) => {
   const { totalAmount, amountPaid, amountRemaining, isFullyPaid } = data.financials;
   return (
     <Box sx={{ mb: 3 }}>
       <Typography variant="h4" sx={{ mb: 2 }}>Thông tin tài chính</Typography>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <TextField fullWidth label="Tổng tiền hợp đồng" value={formatPrice(totalAmount)} disabled />
-        </Grid>
+        <Grid item xs={12}><TextField fullWidth label="Tổng tiền hợp đồng" value={formatPrice(totalAmount)} disabled /></Grid>
         <Grid item xs={12}>
           <TextField
-            fullWidth
-            label="Số tiền đã thanh toán"
-            name="financials.amountPaid"
-            value={amountPaid}
-            onChange={onChange}
-            error={!!errors.amountPaid}
+            fullWidth label="Số tiền đã thanh toán" name="financials.amountPaid"
+            value={amountPaid} onChange={onChange} error={!!errors.amountPaid}
             helperText={errors.amountPaid || `Tối đa: ${formatPrice(totalAmount)}`}
-            disabled={isFullyPaid}
+            disabled={isFullyPaid || paymentHistory.length > 0}
           />
         </Grid>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Số tiền còn lại"
-            value={formatPrice(amountRemaining)}
-            disabled
-            sx={{
-              '& .MuiInputBase-input': {
+        {paymentHistory.length > 0 && !isFullyPaid && (
+          <Grid item xs={12}>
+            <TextField
+              fullWidth label="Số tiền còn lại để thanh toán" name="amountPaidNext"
+              value={amountPaidNext} onChange={onChange} error={!!errors.amountPaidNext}
+              helperText={errors.amountPaidNext || `Tối đa: ${formatPrice(totalAmount - parseCurrency(amountPaid || '0'))}`}
+              disabled={isFullyPaid}
+            />
+          </Grid>
+        )}
+        {!isFullyPaid && (
+          <Grid item xs={12}>
+            <TextField
+              fullWidth label="Số tiền còn lại" value={formatPrice(amountRemaining)} disabled
+              sx={{ '& .MuiInputBase-input': {
                 color: amountRemaining > 0 ? 'error.main' : 'success.main',
-                fontWeight: 'bold'
-              }
-            }}
-          />
-        </Grid>
+                fontWeight: 'bold' }}}
+            />
+          </Grid>
+        )}
       </Grid>
       <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
         <Typography variant="subtitle2">Trạng thái thanh toán:</Typography>
-        <Typography variant="body2" color={`${status.status}.main`} fontWeight="bold">
-          {status.message}
-        </Typography>
+        <Typography variant="body2" color={`${status.status}.main`} fontWeight="bold">{status.message}</Typography>
         <Typography variant="body2" color="text.secondary">{status.desc}</Typography>
       </Box>
     </Box>
@@ -319,9 +294,7 @@ const ContractServiceTable = ({ services, theme, loading }) => (
         <TableHead>
           <TableRow>
             {columns.map(col => (
-              <TableCell key={col.id} sx={{ minWidth: col.minWidth, backgroundColor: theme.palette.primary.light }}>
-                {col.label}
-              </TableCell>
+              <TableCell key={col.id} sx={{ minWidth: col.minWidth, backgroundColor: theme.palette.primary.light }}>{col.label}</TableCell>
             ))}
           </TableRow>
         </TableHead>
@@ -355,29 +328,31 @@ const ContractServiceTable = ({ services, theme, loading }) => (
 );
 
 const PaymentHistoryTable = ({ paymentHistory, theme }) => (
-  <Box sx={{ mb: 3 }}>
-    <Typography variant="h4" sx={{ mb: 2 }}>Lịch sử thanh toán</Typography>
-    <TableContainer>
-      <Table stickyHeader>
-        <TableHead>
-          <TableRow>
-            <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Ngày thanh toán</TableCell>
-            <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Số tiền</TableCell>
-            <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Phương thức thanh toán</TableCell>
-            <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Tạo bởi</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {paymentHistory.map((row) => (
-            <TableRow hover key={row._id}>
-              <TableCell>{formatDate(row.paymentDate)}</TableCell>
-              <TableCell>{formatPrice(row.amount)}</TableCell>
-              <TableCell>{row.method}</TableCell>
-              <TableCell>{row.createdBy}</TableCell>
+  paymentHistory.length > 0 && (
+    <Box sx={{ mb: 3 }}>
+      <Typography variant="h4" sx={{ mb: 2 }}>Lịch sử thanh toán</Typography>
+      <TableContainer>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Ngày thanh toán</TableCell>
+              <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Số tiền</TableCell>
+              <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Phương thức thanh toán</TableCell>
+              <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Tạo bởi</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  </Box>
+          </TableHead>
+          <TableBody>
+            {paymentHistory.map((row) => (
+              <TableRow hover key={row._id}>
+                <TableCell>{formatDate(row.paymentDate)}</TableCell>
+                <TableCell>{formatPrice(row.amount)}</TableCell>
+                <TableCell>{row.method}</TableCell>
+                <TableCell>{row.createdBy}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  )
 );
