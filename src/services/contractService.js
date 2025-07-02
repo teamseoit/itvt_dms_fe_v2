@@ -16,6 +16,10 @@ const CONTRACT_API = {
   delete: (id) => {
     return axios.delete(`/contracts/${id}`);
   },
+
+  getPaymentHistory: (id) => {
+    return axios.get(`/contracts/${id}/payment-history`);
+  },
 };
 
 export default CONTRACT_API; 

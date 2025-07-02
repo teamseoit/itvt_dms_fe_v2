@@ -45,6 +45,7 @@ export default function ContractUpdate() {
     }
   });
   const [errors, setErrors] = useState({});
+  const [paymentHistory, setPaymentHistory] = useState([]);
 
   useEffect(() => {
     if (!isEdit) {
@@ -84,7 +85,23 @@ export default function ContractUpdate() {
       }
     };
 
+    const fetchPaymentHistory = async () => {
+      try {
+        const res = await CONTRACT_API.getPaymentHistory(id);
+        if (res?.data?.success) {
+          setPaymentHistory(res.data.data);
+        } else {
+          throw new Error();
+        }
+      } catch (err) {
+        toast.error('Lỗi khi tải lịch sử thanh toán');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchContractData();
+    fetchPaymentHistory();
   }, [id, isEdit, navigate]);
 
   const handleBack = () => navigate('/hop-dong');
@@ -209,7 +226,7 @@ export default function ContractUpdate() {
                 status={status}
               />
               <ContractServiceTable services={formData.services} theme={theme} loading={loading} />
-
+              <PaymentHistoryTable paymentHistory={paymentHistory} theme={theme} />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Button variant="outlined" onClick={handleBack}>Hủy</Button>
                 <Button type="submit" variant="contained" disabled={formData.financials.isFullyPaid || loading}>
@@ -331,6 +348,34 @@ const ContractServiceTable = ({ services, theme, loading }) => (
               </TableRow>
             ))
           )}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  </Box>
+);
+
+const PaymentHistoryTable = ({ paymentHistory, theme }) => (
+  <Box sx={{ mb: 3 }}>
+    <Typography variant="h4" sx={{ mb: 2 }}>Lịch sử thanh toán</Typography>
+    <TableContainer>
+      <Table stickyHeader>
+        <TableHead>
+          <TableRow>
+            <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Ngày thanh toán</TableCell>
+            <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Số tiền</TableCell>
+            <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Phương thức thanh toán</TableCell>
+            <TableCell sx={{ backgroundColor: theme.palette.primary.light }}>Tạo bởi</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {paymentHistory.map((row) => (
+            <TableRow hover key={row._id}>
+              <TableCell>{formatDate(row.paymentDate)}</TableCell>
+              <TableCell>{formatPrice(row.amount)}</TableCell>
+              <TableCell>{row.method}</TableCell>
+              <TableCell>{row.createdBy}</TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </TableContainer>
