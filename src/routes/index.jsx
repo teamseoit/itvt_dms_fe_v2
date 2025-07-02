@@ -63,6 +63,8 @@ const DomainServiceList = Loadable(lazy(() => import('views/services/domain/Doma
 const DomainServiceAdd = Loadable(lazy(() => import('views/services/domain/DomainServiceAdd.jsx')));
 const HostingServiceList = Loadable(lazy(() => import('views/services/hosting/HostingServiceList.jsx')));
 const HostingServiceAdd = Loadable(lazy(() => import('views/services/hosting/HostingServiceAdd.jsx')));
+const SslServiceList = Loadable(lazy(() => import('views/services/ssl/SslServiceList.jsx')));
+const SslServiceAdd = Loadable(lazy(() => import('views/services/ssl/SslServiceAdd.jsx')));
 
 // Contract Management
 const ContractList = Loadable(lazy(() => import('views/contract/ContractList.jsx')));
@@ -386,6 +388,18 @@ const router = createBrowserRouter([
               {
                 path: 'hosting/:id',
                 element: <HostingServiceAdd />
+              },
+              {
+                path: 'ssl',
+                element: <SslServiceList />
+              },
+              {
+                path: 'ssl/them-moi',
+                element: <SslServiceAdd />
+              },
+              {
+                path: 'ssl/:id',
+                element: <SslServiceAdd />
               }
             ]
           },

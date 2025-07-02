@@ -318,6 +318,8 @@ const ContractServiceTable = ({ services, theme, loading }) => (
                   <Typography variant="subtitle1">
                     {row.serviceType === 'hosting'
                       ? row.serviceId.hostingPlanId.name
+                      : row.serviceType === 'ssl'
+                      ? row.serviceId.sslPlanId.name
                       : row.serviceId.name}
                   </Typography>
                 </TableCell>
