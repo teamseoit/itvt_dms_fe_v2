@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -22,9 +22,11 @@ import {
   Typography,
   CircularProgress,
   Chip,
-  Collapse
+  Collapse,
+  TextField,
+  InputAdornment
 } from '@mui/material';
-import { IconPlus, IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconChevronUp, IconChevronDown, IconSearch } from '@tabler/icons-react';
 
 import EMAIL_SERVICE_API from '../../../services/services/emailServiceService';
 import usePermissions from '../../../hooks/usePermissions';
@@ -32,6 +34,7 @@ import { PERMISSIONS } from '../../../constants/permissions';
 import { formatDateTime, formatDate, formatPrice, maskPhoneNumber } from '../../../utils/formatConstants';
 
 const columns = [
+  { id: 'info', label: 'Chi tiết', minWidth: 80 },
   { id: 'actions', label: 'Thao tác', minWidth: 100 },
   { id: 'name', label: 'Tên dịch vụ', minWidth: 200 },
   { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 130 },
@@ -61,11 +64,26 @@ export default function EmailServiceList() {
 
   const [openInfoId, setOpenInfoId] = useState(null);
   const { hasPermission } = usePermissions();
+  
+  // Filters
+  const [statusFilter, setStatusFilter] = useState('');
+  const [counts, setCounts] = useState({ all: 0, nearExpired: 0, expired: 0 });
+
+  // Search
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const debounceTimerRef = useRef(null);
 
   const fetchHostingServices = async (pageNumber = 1) => {
     try {
       setLoading(true);
-      const response = await EMAIL_SERVICE_API.getAll({ page: pageNumber, limit: 10 });
+      const params = {
+        page: pageNumber,
+        limit: 10,
+        ...(debouncedSearchTerm ? { keyword: debouncedSearchTerm } : {}),
+        ...(statusFilter === '' || statusFilter === null || typeof statusFilter === 'undefined' ? {} : { status: statusFilter })
+      };
+      const response = await EMAIL_SERVICE_API.getAll(params);
       if (response.data.success) {
         setData({
           domainServices: response.data.data,
@@ -81,7 +99,41 @@ export default function EmailServiceList() {
 
   useEffect(() => {
     fetchHostingServices(page + 1);
-  }, [page]);
+  }, [page, statusFilter, debouncedSearchTerm]);
+
+  // Debounce search input
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setPage(0);
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(value);
+    }, 500);
+  };
+
+  // Fetch counts for status filters
+  const fetchCounts = async () => {
+    try {
+      const [all, nearExpired, expired] = await Promise.all([
+        EMAIL_SERVICE_API.getAll({ page: 1, limit: 1 }),
+        EMAIL_SERVICE_API.getAll({ page: 1, limit: 1, status: 2 }),
+        EMAIL_SERVICE_API.getAll({ page: 1, limit: 1, status: 3 })
+      ]);
+      setCounts({
+        all: all.data.meta?.totalDocs || 0,
+        nearExpired: nearExpired.data.meta?.totalDocs || 0,
+        expired: expired.data.meta?.totalDocs || 0
+      });
+    } catch (err) {
+      // Non-blocking
+    }
+  };
+
+  useEffect(() => {
+    fetchCounts();
+  }, []);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -170,7 +222,7 @@ export default function EmailServiceList() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h3">Danh sách dịch vụ Email</Typography>
-        {hasPermission(PERMISSIONS.DOMAIN_SERVICE.ADD) && (
+        {hasPermission(PERMISSIONS.EMAIL_SERVICE.ADD) && (
           <Button
             variant="contained"
             startIcon={<IconPlus />}
@@ -182,7 +234,85 @@ export default function EmailServiceList() {
         )}
       </Box>
 
-      {hasPermission(PERMISSIONS.DOMAIN_SERVICE.VIEW) ? (
+      {hasPermission(PERMISSIONS.EMAIL_SERVICE.VIEW) ? (
+      <>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Button
+            variant={statusFilter === '' ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => { setPage(0); setStatusFilter(''); }}
+            sx={{
+              borderRadius: '5px',
+              textTransform: 'none',
+              fontWeight: 500,
+              boxShadow: 'none',
+            }}
+          >
+            Tất cả: {counts.all}
+          </Button>
+          <Button
+            variant={statusFilter === 2 ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => { setPage(0); setStatusFilter(2); }}
+            sx={{
+              borderRadius: '5px',
+              textTransform: 'none',
+              fontWeight: 500,
+              boxShadow: 'none',
+              ...(statusFilter === 2
+                ? { backgroundColor: '#ff9800', color: '#fff', '&:hover': { backgroundColor: '#ff9800' } }
+                : { color: '#ff9800', borderColor: '#ff9800' })
+            }}
+          >
+            Sắp hết hạn: {counts.nearExpired}
+          </Button>
+          <Button
+            variant={statusFilter === 3 ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => { setPage(0); setStatusFilter(3); }}
+            sx={{
+              borderRadius: '5px',
+              textTransform: 'none',
+              fontWeight: 500,
+              boxShadow: 'none',
+              ...(statusFilter === 3
+                ? { backgroundColor: '#f44336', color: '#fff', '&:hover': { backgroundColor: '#f44336' } }
+                : { color: '#f44336', borderColor: '#f44336' })
+            }}
+          >
+            Hết hạn: {counts.expired}
+          </Button>
+        </Box>
+
+        <Box>
+          <TextField
+            variant="outlined"
+            placeholder="Tìm theo tên hoặc số điện thoại"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            size="small"
+            sx={{
+              width: '300px',
+              backgroundColor: '#fff',
+              borderRadius: '10px',
+              borderColor: '#ccc',
+              boxShadow: 'none',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '20px',
+              }
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <IconSearch size={18} />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+      </Box>
+
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer>
           <Table stickyHeader aria-label="bảng dịch vụ Email">
@@ -214,7 +344,12 @@ export default function EmailServiceList() {
                     <>
                       <TableRow hover role="checkbox" tabIndex={-1} key={row._id || row.id}>
                         <TableCell>
-                          {hasPermission(PERMISSIONS.DOMAIN_SERVICE.UPDATE) && (
+                          <IconButton size="small" onClick={() => toggleCollapse(row._id)}>
+                            {isOpen ? <IconChevronUp /> : <IconChevronDown />}
+                          </IconButton>
+                        </TableCell>
+                        <TableCell>
+                          {hasPermission(PERMISSIONS.EMAIL_SERVICE.UPDATE) && (
                             <IconButton 
                               color="primary" 
                               onClick={() => handleEdit(row._id || row.id)}
@@ -223,7 +358,7 @@ export default function EmailServiceList() {
                               <IconEdit size={18} />
                             </IconButton>
                           )}
-                          {hasPermission(PERMISSIONS.DOMAIN_SERVICE.DELETE) && (
+                          {hasPermission(PERMISSIONS.EMAIL_SERVICE.DELETE) && (
                             <IconButton 
                               color="error" 
                               onClick={() => handleDeleteClick(row._id || row.id)}
@@ -261,6 +396,21 @@ export default function EmailServiceList() {
                         </TableCell>
                         <TableCell>{formatDateTime(row.createdAt)}</TableCell>
                       </TableRow>
+                      <TableRow>
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={columns.length}>
+                          <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
+                              <Box margin={1} sx={{ flex: 1 }}>
+                                <Typography variant="subtitle1">Chi tiết dịch vụ Email</Typography>
+                                <Typography variant="body2">- Khách hàng: {row.customerId?.fullName} / {maskPhoneNumber(row.customerId?.phoneNumber)}</Typography>
+                                <Typography variant="body2">- Địa chỉ IP: {getIpAddress(row.serverPlanId)}</Typography>
+                                <Typography variant="body2">- Xuất VAT: {row.vatIncluded ? 'Có' : 'Không'}</Typography>
+                                <Typography variant="body2">- Tổng giá nhập {row.vatIncluded ? 'Có' : 'Không'} VAT: {formatPrice(row.vatPrice)} / {row.periodValue} năm</Typography>
+                              </Box>
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
                     </>
                   );
                 })
@@ -278,6 +428,7 @@ export default function EmailServiceList() {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
         />
       </Paper>
+      </>
       ) : (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="h6" color="error">
