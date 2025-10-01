@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -22,9 +22,11 @@ import {
   Typography,
   CircularProgress,
   Chip,
-  Collapse
+  Collapse,
+  TextField,
+  InputAdornment
 } from '@mui/material';
-import { IconPlus, IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconChevronUp, IconChevronDown, IconSearch } from '@tabler/icons-react';
 
 import DOMAIN_SERVICE_API from '../../../services/services/domainServiceService';
 import usePermissions from '../../../hooks/usePermissions';
@@ -63,10 +65,25 @@ export default function DomainServiceList() {
   const [openInfoId, setOpenInfoId] = useState(null);
   const { hasPermission } = usePermissions();
 
+  // Filters
+  const [statusFilter, setStatusFilter] = useState(''); // 1: all, 2: near expired, 3: expired
+  const [counts, setCounts] = useState({ all: 0, nearExpired: 0, expired: 0 });
+
+  // Search
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const debounceTimerRef = useRef(null);
+
   const fetchDomainServices = async (pageNumber = 1) => {
     try {
       setLoading(true);
-      const response = await DOMAIN_SERVICE_API.getAll({ page: pageNumber, limit: 10 });
+      const params = {
+        page: pageNumber,
+        limit: 10,
+        ...(debouncedSearchTerm ? { keyword: debouncedSearchTerm } : {}),
+        ...(statusFilter === '' || statusFilter === null || typeof statusFilter === 'undefined' ? {} : { status: statusFilter })
+      };
+      const response = await DOMAIN_SERVICE_API.getAll(params);
       if (response.data.success) {
         setData({
           domainServices: response.data.data,
@@ -82,7 +99,41 @@ export default function DomainServiceList() {
 
   useEffect(() => {
     fetchDomainServices(page + 1);
-  }, [page]);
+  }, [page, statusFilter, debouncedSearchTerm]);
+
+  // Debounce search input
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setPage(0);
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(value);
+    }, 500);
+  };
+
+  // Fetch counts for status filters
+  const fetchCounts = async () => {
+    try {
+      const [all, nearExpired, expired] = await Promise.all([
+        DOMAIN_SERVICE_API.getAll({ page: 1, limit: 1 }),
+        DOMAIN_SERVICE_API.getAll({ page: 1, limit: 1, status: 2 }),
+        DOMAIN_SERVICE_API.getAll({ page: 1, limit: 1, status: 3 })
+      ]);
+      setCounts({
+        all: all.data.meta?.totalDocs || 0,
+        nearExpired: nearExpired.data.meta?.totalDocs || 0,
+        expired: expired.data.meta?.totalDocs || 0
+      });
+    } catch (err) {
+      // Non-blocking
+    }
+  };
+
+  useEffect(() => {
+    fetchCounts();
+  }, []);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -184,6 +235,84 @@ export default function DomainServiceList() {
       </Box>
 
       {hasPermission(PERMISSIONS.DOMAIN_SERVICE.VIEW) ? (
+      <>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Button
+            variant={statusFilter === '' ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => { setPage(0); setStatusFilter(''); }}
+            sx={{
+              borderRadius: '5px',
+              textTransform: 'none',
+              fontWeight: 500,
+              boxShadow: 'none',
+            }}
+          >
+            Tất cả: {counts.all}
+          </Button>
+          <Button
+            variant={statusFilter === 2 ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => { setPage(0); setStatusFilter(2); }}
+            sx={{
+              borderRadius: '5px',
+              textTransform: 'none',
+              fontWeight: 500,
+              boxShadow: 'none',
+              ...(statusFilter === 2
+                ? { backgroundColor: '#ff9800', color: '#fff', '&:hover': { backgroundColor: '#ff9800' } }
+                : { color: '#ff9800', borderColor: '#ff9800' })
+            }}
+          >
+            Sắp hết hạn: {counts.nearExpired}
+          </Button>
+          <Button
+            variant={statusFilter === 3 ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => { setPage(0); setStatusFilter(3); }}
+            sx={{
+              borderRadius: '5px',
+              textTransform: 'none',
+              fontWeight: 500,
+              boxShadow: 'none',
+              ...(statusFilter === 3
+                ? { backgroundColor: '#f44336', color: '#fff', '&:hover': { backgroundColor: '#f44336' } }
+                : { color: '#f44336', borderColor: '#f44336' })
+            }}
+          >
+            Hết hạn: {counts.expired}
+          </Button>
+        </Box>
+
+        <Box>
+          <TextField
+            variant="outlined"
+            placeholder="Tìm theo tên hoặc số điện thoại"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            size="small"
+            sx={{
+              width: '300px',
+              backgroundColor: '#fff',
+              borderRadius: '10px',
+              borderColor: '#ccc',
+              boxShadow: 'none',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '20px',
+              }
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <IconSearch size={18} />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+      </Box>
+
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer>
           <Table stickyHeader aria-label="bảng dịch vụ tên miền">
@@ -297,6 +426,7 @@ export default function DomainServiceList() {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
         />
       </Paper>
+      </>
       ) : (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="h6" color="error">
