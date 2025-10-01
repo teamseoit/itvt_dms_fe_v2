@@ -165,7 +165,7 @@ export default function ServiceSupplierAdd() {
           {[
             { label: 'Tên nhà cung cấp (*)', name: 'name' },
             { label: 'Công ty (*)', name: 'company' },
-            { label: 'Mã số thuế', name: 'taxCode', type: 'number' },
+            { label: 'Mã số thuế (*)', name: 'taxCode', type: 'number' },
             { label: 'Số điện thoại (*)', name: 'phone', type: 'number' },
             { label: 'Email', name: 'email', type: 'email' },
             { label: 'Website', name: 'website' },

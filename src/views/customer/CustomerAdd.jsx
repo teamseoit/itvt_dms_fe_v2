@@ -195,7 +195,7 @@ export default function CustomerAdd() {
               <TextField
                 fullWidth
                 type="text"
-                label="Số CMND"
+                label="Số CMND (*)"
                 name="identityNumber"
                 value={formData.identityNumber}
                 onChange={(e) => {
@@ -210,7 +210,7 @@ export default function CustomerAdd() {
               <TextField
                 fullWidth
                 type="text"
-                label="Số điện thoại"
+                label="Số điện thoại (*)"
                 name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={(e) => {

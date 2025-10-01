@@ -28,7 +28,7 @@ export default function ProfileSection() {
   const { borderRadius } = useConfig();
   const [selectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, userInfo } = useAuth();
 
   const anchorRef = useRef(null);
 
@@ -119,10 +119,10 @@ export default function ProfileSection() {
                         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                           <Typography variant="h4">Xin chào,</Typography>
                           <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                            Phúc
+                            {userInfo?.display_name || ''}
                           </Typography>
                         </Stack>
-                        <Typography variant="subtitle2">Quyền admin</Typography>
+                        {/* <Typography variant="subtitle2">Quyền admin</Typography> */}
                       </Stack>
                       <Divider />
                     </Box>
