@@ -42,41 +42,41 @@ const service = {
           url: '/goi-dich-vu/ssl',
           breadcrumbs: true
         }, 
-        {
-          id: 'content',
-          title: 'Viết bài Content & PR',
-          type: 'item',
-          url: '/goi-dich-vu/viet-bai-content',
-          breadcrumbs: true
-        },
-        {
-          id: 'toplist',
-          title: 'Toplist Vũng Tàu',
-          type: 'item',
-          url: '/goi-dich-vu/toplist-vung-tau',
-          breadcrumbs: true
-        },
-        {
-          id: 'maintenance',
-          title: 'Bảo trì',
-          type: 'item',
-          url: '/goi-dich-vu/bao-tri',
-          breadcrumbs: true
-        },
-        {
-          id: 'server',
-          title: 'Server',
-          type: 'item',
-          url: '/goi-dich-vu/server',
-          breadcrumbs: true
-        },
-        {
-          id: 'network',
-          title: 'Nhà mạng',
-          type: 'item',
-          url: '/goi-dich-vu/nha-mang',
-          breadcrumbs: true
-        }
+        // {
+        //   id: 'content',
+        //   title: 'Viết bài Content & PR',
+        //   type: 'item',
+        //   url: '/goi-dich-vu/viet-bai-content',
+        //   breadcrumbs: true
+        // },
+        // {
+        //   id: 'toplist',
+        //   title: 'Toplist Vũng Tàu',
+        //   type: 'item',
+        //   url: '/goi-dich-vu/toplist-vung-tau',
+        //   breadcrumbs: true
+        // },
+        // {
+        //   id: 'maintenance',
+        //   title: 'Bảo trì',
+        //   type: 'item',
+        //   url: '/goi-dich-vu/bao-tri',
+        //   breadcrumbs: true
+        // },
+        // {
+        //   id: 'server',
+        //   title: 'Server',
+        //   type: 'item',
+        //   url: '/goi-dich-vu/server',
+        //   breadcrumbs: true
+        // },
+        // {
+        //   id: 'network',
+        //   title: 'Nhà mạng',
+        //   type: 'item',
+        //   url: '/goi-dich-vu/nha-mang',
+        //   breadcrumbs: true
+        // }
       ]
     },
     {
