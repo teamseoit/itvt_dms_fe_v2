@@ -312,12 +312,26 @@ const ContractServiceTable = ({ services, theme, loading }) => (
                       ? row.serviceId.sslPlanId.name
                       : row.serviceType === 'email'
                       ? row.serviceId.emailPlanId.name
+                      : row.serviceType === 'website'
+                      ? row.serviceId.domainServiceId?.name || 'Website Service'
                       : row.serviceId.name}
                   </Typography>
                 </TableCell>
-                <TableCell>{formatDate(row.serviceId.registeredAt)}</TableCell>
-                <TableCell>{formatDate(row.serviceId.expiredAt)}</TableCell>
-                <TableCell>{row.serviceId.vatIncluded ? 'Có' : 'Không'}</TableCell>
+                <TableCell>
+                  {formatDate(row.serviceType === 'website' 
+                    ? row.serviceId.createdAt 
+                    : row.serviceId.registeredAt)}
+                </TableCell>
+                <TableCell>
+                  {formatDate(row.serviceType === 'website' 
+                    ? row.serviceId.endDate || 'N/A'
+                    : row.serviceId.expiredAt)}
+                </TableCell>
+                <TableCell>
+                  {row.serviceType === 'website' 
+                    ? 'N/A' 
+                    : (row.serviceId.vatIncluded ? 'Có' : 'Không')}
+                </TableCell>
               </TableRow>
             ))
           )}

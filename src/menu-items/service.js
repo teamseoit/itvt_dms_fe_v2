@@ -115,46 +115,46 @@ const service = {
         },
         {
           id: 'website',
-          title: 'Thiết kế website  ',
+          title: 'Thiết kế website',
           type: 'item',
           url: '/dich-vu/thiet-ke-website',
           breadcrumbs: true
         },
-        {
-          id: 'content',
-          title: 'Viết bài Content & PR',
-          type: 'item',
-          url: '/dich-vu/viet-bai-content',
-          breadcrumbs: true
-        },
-        {
-          id: 'toplist',
-          title: 'Toplist Vũng Tàu',
-          type: 'item',
-          url: '/dich-vu/toplist-vung-tau',
-          breadcrumbs: true
-        },
-        {
-          id: 'maintenance',
-          title: 'Bảo trì',
-          type: 'item',
-          url: '/dich-vu/bao-tri',
-          breadcrumbs: true
-        },
-        {
-          id: 'server',
-          title: 'Server',
-          type: 'item',
-          url: '/dich-vu/server',
-          breadcrumbs: true
-        },
-        {
-          id: 'network',
-          title: 'Nhà mạng',
-          type: 'item',
-          url: '/dich-vu/nha-mang',
-          breadcrumbs: true
-        }
+        // {
+        //   id: 'content',
+        //   title: 'Viết bài Content & PR',
+        //   type: 'item',
+        //   url: '/dich-vu/viet-bai-content',
+        //   breadcrumbs: true
+        // },
+        // {
+        //   id: 'toplist',
+        //   title: 'Toplist Vũng Tàu',
+        //   type: 'item',
+        //   url: '/dich-vu/toplist-vung-tau',
+        //   breadcrumbs: true
+        // },
+        // {
+        //   id: 'maintenance',
+        //   title: 'Bảo trì',
+        //   type: 'item',
+        //   url: '/dich-vu/bao-tri',
+        //   breadcrumbs: true
+        // },
+        // {
+        //   id: 'server',
+        //   title: 'Server',
+        //   type: 'item',
+        //   url: '/dich-vu/server',
+        //   breadcrumbs: true
+        // },
+        // {
+        //   id: 'network',
+        //   title: 'Nhà mạng',
+        //   type: 'item',
+        //   url: '/dich-vu/nha-mang',
+        //   breadcrumbs: true
+        // }
       ]
     }
   ]

@@ -67,6 +67,8 @@ const EmailServiceList = Loadable(lazy(() => import('views/services/email/EmailS
 const EmailServiceAdd = Loadable(lazy(() => import('views/services/email/EmailServiceAdd.jsx')));
 const SslServiceList = Loadable(lazy(() => import('views/services/ssl/SslServiceList.jsx')));
 const SslServiceAdd = Loadable(lazy(() => import('views/services/ssl/SslServiceAdd.jsx')));
+const WebsiteServiceList = Loadable(lazy(() => import('views/services/website/WebsiteServiceList.jsx')));
+const WebsiteServiceAdd = Loadable(lazy(() => import('views/services/website/WebsiteServiceAdd.jsx')));
 
 // Contract Management
 const ContractList = Loadable(lazy(() => import('views/contract/ContractList.jsx')));
@@ -414,6 +416,18 @@ const router = createBrowserRouter([
               {
                 path: 'ssl/:id',
                 element: <SslServiceAdd />
+              },
+              {
+                path: 'thiet-ke-website',
+                element: <WebsiteServiceList />
+              },
+              {
+                path: 'thiet-ke-website/them-moi',
+                element: <WebsiteServiceAdd />
+              },
+              {
+                path: 'thiet-ke-website/:id',
+                element: <WebsiteServiceAdd />
               }
             ]
           },
