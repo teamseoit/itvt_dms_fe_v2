@@ -1,9 +1,9 @@
 import axios from '../api/axios';
-import DOMAIN_SERVICE_API from './services/domainServiceService';
-import SSL_SERVICE_API from './services/sslServiceService';
-import HOSTING_SERVICE_API from './services/hostingServiceService';
-import EMAIL_SERVICE_API from './services/emailServiceService';
-import WEBSITE_SERVICE_API from './services/websiteServiceService';
+import DOMAIN_SERVICE_API from './services/domainService';
+import SSL_SERVICE_API from './services/sslService';
+import HOSTING_SERVICE_API from './services/hostingService';
+import EMAIL_SERVICE_API from './services/emailService';
+import WEBSITE_SERVICE_API from './services/websiteService';
 import CONTRACT_API from './contractService';
 
 const DASHBOARD_API = {

@@ -8,10 +8,10 @@ import {
 } from '@mui/material';
 import { IconArrowLeft } from '@tabler/icons-react';
 
-import HOSTING_SERVICE_API from '../../../services/services/hostingServiceService';
+import HOSTING_SERVICE_API from '../../../services/services/hostingService';
 import CUSTOMER_API from '../../../services/customerService';
 import HOSTING_PLAN_API from '../../../services/plans/hostingPlanService';
-import DOMAIN_SERVICE_API from '../../../services/services/domainServiceService';
+import DOMAIN_SERVICE_API from '../../../services/services/domainService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
 

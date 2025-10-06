@@ -8,10 +8,10 @@ import {
 } from '@mui/material';
 import { IconArrowLeft } from '@tabler/icons-react';
 
-import EMAIL_SERVICE_API from '../../../services/services/emailServiceService';
+import EMAIL_SERVICE_API from '../../../services/services/emailService';
 import CUSTOMER_API from '../../../services/customerService';
 import EMAIL_PLAN_API from '../../../services/plans/emailPlanService';
-import DOMAIN_SERVICE_API from '../../../services/services/domainServiceService';
+import DOMAIN_SERVICE_API from '../../../services/services/domainService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
 

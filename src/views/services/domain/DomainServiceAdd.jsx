@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { IconArrowLeft } from '@tabler/icons-react';
 
-import DOMAIN_SERVICE_API from '../../../services/services/domainServiceService';
+import DOMAIN_SERVICE_API from '../../../services/services/domainService';
 import CUSTOMER_API from '../../../services/customerService';
 import DOMAIN_PLAN_API from '../../../services/plans/domainPlanService';
 import SERVER_PLAN_API from '../../../services/plans/serverPlanService';

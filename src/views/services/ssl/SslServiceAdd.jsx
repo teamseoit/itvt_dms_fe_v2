@@ -8,10 +8,10 @@ import {
 } from '@mui/material';
 import { IconArrowLeft } from '@tabler/icons-react';
 
-import SSL_SERVICE_API from '../../../services/services/sslServiceService';
+import SSL_SERVICE_API from '../../../services/services/sslService';
 import CUSTOMER_API from '../../../services/customerService';
 import SSL_PLAN_API from '../../../services/plans/sslPlanService';
-import DOMAIN_SERVICE_API from '../../../services/services/domainServiceService';
+import DOMAIN_SERVICE_API from '../../../services/services/domainService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
 

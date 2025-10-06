@@ -9,7 +9,7 @@ import storage from './storage';
 import ipWhitelist from './ipWhitelist';
 
 const menuItems = {
-  items: [dashboard, ipWhitelist, account, customer, supplier, service, contract, storage]
+  items: [dashboard, ipWhitelist, account, customer, supplier, itvt, service, contract, storage]
 };
 
 export default menuItems;

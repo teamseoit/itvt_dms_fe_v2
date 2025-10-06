@@ -28,7 +28,7 @@ import {
 } from '@mui/material';
 import { IconPlus, IconEdit, IconTrash, IconChevronUp, IconChevronDown, IconSearch } from '@tabler/icons-react';
 
-import EMAIL_SERVICE_API from '../../../services/services/emailServiceService';
+import EMAIL_SERVICE_API from '../../../services/services/emailService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
 import { formatDateTime, formatDate, formatPrice, maskPhoneNumber } from '../../../utils/formatConstants';
