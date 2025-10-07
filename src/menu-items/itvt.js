@@ -17,28 +17,28 @@ const itvt = {
           id: 'domain',
           title: 'Tên miền',
           type: 'item',
-          url: '/itvt-dich-vu/ten-mien',
+          url: '/itvt/ten-mien',
           breadcrumbs: true
         },
         {
           id: 'hosting',
           title: 'Hosting', 
           type: 'item',
-          url: '/itvt-dich-vu/hosting',
+          url: '/itvt/hosting',
           breadcrumbs: true
         },
         {
           id: 'email',
           title: 'Email',
           type: 'item',
-          url: '/itvt-dich-vu/email',
+          url: '/itvt/email',
           breadcrumbs: true
         },
         {
           id: 'ssl',
           title: 'SSL',
           type: 'item',
-          url: '/itvt-dich-vu/ssl',
+          url: '/itvt/ssl',
           breadcrumbs: true
         }
       ]

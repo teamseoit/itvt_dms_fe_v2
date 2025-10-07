@@ -163,6 +163,7 @@ export default function DomainServiceList() {
       if (response.data.success) {
         toast.success('Xóa dịch vụ tên miền thành công');
         fetchDomainServices(page + 1);
+        fetchCounts();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa dịch vụ tên miền');

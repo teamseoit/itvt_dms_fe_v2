@@ -58,6 +58,16 @@ const NetworkPlanAdd = Loadable(lazy(() => import('views/plans/network/NetworkPl
 const ServerPlanList = Loadable(lazy(() => import('views/plans/server/ServerPlanList.jsx')));
 const ServerPlanAdd = Loadable(lazy(() => import('views/plans/server/ServerPlanAdd.jsx')));
 
+// ITVT Management
+const ItvtDomainServiceList = Loadable(lazy(() => import('views/itvt/domain/ItvtDomainServiceList.jsx')));
+const ItvtDomainServiceAdd = Loadable(lazy(() => import('views/itvt/domain/ItvtDomainServiceAdd.jsx')));
+const ItvtHostingServiceList = Loadable(lazy(() => import('views/itvt/hosting/ItvtHostingServiceList.jsx')));
+const ItvtHostingServiceAdd = Loadable(lazy(() => import('views/itvt/hosting/ItvtHostingServiceAdd.jsx')));
+const ItvtEmailServiceList = Loadable(lazy(() => import('views/itvt/email/ItvtEmailServiceList.jsx')));
+const ItvtEmailServiceAdd = Loadable(lazy(() => import('views/itvt/email/ItvtEmailServiceAdd.jsx')));
+const ItvtSslServiceList = Loadable(lazy(() => import('views/itvt/ssl/ItvtSslServiceList.jsx')));
+const ItvtSslServiceAdd = Loadable(lazy(() => import('views/itvt/ssl/ItvtSslServiceAdd.jsx')));
+
 // Service Management
 const DomainServiceList = Loadable(lazy(() => import('views/services/domain/DomainServiceList.jsx')));
 const DomainServiceAdd = Loadable(lazy(() => import('views/services/domain/DomainServiceAdd.jsx')));
@@ -363,6 +373,59 @@ const router = createBrowserRouter([
               {
                 path: 'server/:id',
                 element: <ServerPlanAdd />
+              },
+            ]
+          },
+          {
+            path: 'itvt',
+            children: [
+              {
+                path: 'ten-mien',
+                element: <ItvtDomainServiceList />
+              },
+              {
+                path: 'ten-mien/them-moi',
+                element: <ItvtDomainServiceAdd />
+              },
+              {
+                path: 'ten-mien/:id',
+                element: <ItvtDomainServiceAdd />
+              },
+              {
+                path: 'hosting',
+                element: <ItvtHostingServiceList />
+              },
+              {
+                path: 'hosting/them-moi',
+                element: <ItvtHostingServiceAdd />
+              },
+              {
+                path: 'hosting/:id',
+                element: <ItvtHostingServiceAdd />
+              },
+              {
+                path: 'email',
+                element: <ItvtEmailServiceList />
+              },
+              {
+                path: 'email/them-moi',
+                element: <ItvtEmailServiceAdd />
+              },
+              {
+                path: 'email/:id',
+                element: <ItvtEmailServiceAdd />
+              },
+              {
+                path: 'ssl',
+                element: <ItvtSslServiceList />
+              },
+              {
+                path: 'ssl/them-moi',
+                element: <ItvtSslServiceAdd />
+              },
+              {
+                path: 'ssl/:id',
+                element: <ItvtSslServiceAdd />
               },
             ]
           },

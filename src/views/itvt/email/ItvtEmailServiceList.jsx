@@ -28,7 +28,7 @@ import {
 } from '@mui/material';
 import { IconPlus, IconEdit, IconTrash, IconChevronUp, IconChevronDown, IconSearch } from '@tabler/icons-react';
 
-import SSL_SERVICE_API from '../../../services/services/sslService';
+import EMAIL_SERVICE_API from '../../../services/itvt/emailService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
 import { formatDateTime, formatDate, formatPrice, maskPhoneNumber } from '../../../utils/formatConstants';
@@ -45,7 +45,7 @@ const columns = [
   { id: 'createdAt', label: 'Ngày tạo', minWidth: 180 }
 ];
 
-export default function SslServiceList() {
+export default function ItvtEmailServiceList() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
@@ -53,7 +53,7 @@ export default function SslServiceList() {
   const [deleteId, setDeleteId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({
-    domainServices: [],
+    emailServices: [],
     meta: {
       page: 1,
       limit: 10,
@@ -64,9 +64,9 @@ export default function SslServiceList() {
 
   const [openInfoId, setOpenInfoId] = useState(null);
   const { hasPermission } = usePermissions();
-  
+
   // Filters
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState(''); // 1: all, 2: near expired, 3: expired
   const [counts, setCounts] = useState({ all: 0, nearExpired: 0, expired: 0 });
 
   // Search
@@ -74,7 +74,7 @@ export default function SslServiceList() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const debounceTimerRef = useRef(null);
 
-  const fetchHostingServices = async (pageNumber = 1) => {
+  const fetchEmailServices = async (pageNumber = 1) => {
     try {
       setLoading(true);
       const params = {
@@ -83,22 +83,22 @@ export default function SslServiceList() {
         ...(debouncedSearchTerm ? { keyword: debouncedSearchTerm } : {}),
         ...(statusFilter === '' || statusFilter === null || typeof statusFilter === 'undefined' ? {} : { status: statusFilter })
       };
-      const response = await SSL_SERVICE_API.getAll(params);
+      const response = await EMAIL_SERVICE_API.getAll(params);
       if (response.data.success) {
         setData({
-          domainServices: response.data.data,
+          emailServices: response.data.data,
           meta: response.data.meta
         });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách dịch vụ SSL');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách dịch vụ email ITVT');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchHostingServices(page + 1);
+    fetchEmailServices(page + 1);
   }, [page, statusFilter, debouncedSearchTerm]);
 
   // Debounce search input
@@ -117,9 +117,9 @@ export default function SslServiceList() {
   const fetchCounts = async () => {
     try {
       const [all, nearExpired, expired] = await Promise.all([
-        SSL_SERVICE_API.getAll({ page: 1, limit: 1 }),
-        SSL_SERVICE_API.getAll({ page: 1, limit: 1, status: 2 }),
-        SSL_SERVICE_API.getAll({ page: 1, limit: 1, status: 3 })
+        EMAIL_SERVICE_API.getAll({ page: 1, limit: 1 }),
+        EMAIL_SERVICE_API.getAll({ page: 1, limit: 1, status: 2 }),
+        EMAIL_SERVICE_API.getAll({ page: 1, limit: 1, status: 3 })
       ]);
       setCounts({
         all: all.data.meta?.totalDocs || 0,
@@ -144,11 +144,11 @@ export default function SslServiceList() {
   };
 
   const handleAdd = () => {
-    navigate('/dich-vu/ssl/them-moi');
+    navigate('/itvt/email/them-moi');
   };
 
   const handleEdit = (id) => {
-    navigate(`/dich-vu/ssl/${id}`);
+    navigate(`/itvt/email/${id}`);
   };
 
   const handleDeleteClick = (id) => {
@@ -159,14 +159,14 @@ export default function SslServiceList() {
   const handleDeleteConfirm = async () => {
     try {
       setLoading(true);
-      const response = await SSL_SERVICE_API.delete(deleteId);
+      const response = await EMAIL_SERVICE_API.delete(deleteId);
       if (response.data.success) {
-        toast.success('Xóa dịch vụ SSL thành công');
-        fetchHostingServices(page + 1);
+        toast.success('Xóa dịch vụ email ITVT thành công');
+        fetchEmailServices(page + 1);
         fetchCounts();
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa dịch vụ SSL');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa dịch vụ email ITVT');
     } finally {
       setLoading(false);
       setOpenDialog(false);
@@ -222,8 +222,8 @@ export default function SslServiceList() {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h3">Danh sách dịch vụ SSL</Typography>
-        {hasPermission(PERMISSIONS.SSL_SERVICE.ADD) && (
+        <Typography variant="h3">Danh sách dịch vụ email ITVT</Typography>
+        {hasPermission(PERMISSIONS.EMAIL_SERVICE_ITVT.ADD) && (
           <Button
             variant="contained"
             startIcon={<IconPlus />}
@@ -235,7 +235,7 @@ export default function SslServiceList() {
         )}
       </Box>
 
-      {hasPermission(PERMISSIONS.SSL_SERVICE.VIEW) ? (
+      {hasPermission(PERMISSIONS.EMAIL_SERVICE_ITVT.VIEW) ? (
       <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -316,7 +316,7 @@ export default function SslServiceList() {
 
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer>
-          <Table stickyHeader aria-label="bảng dịch vụ SSL">
+          <Table stickyHeader aria-label="bảng dịch vụ email ITVT">
             <TableHead>
               <TableRow>
                 {columns.map((column) => (
@@ -339,7 +339,7 @@ export default function SslServiceList() {
                   </TableCell>
                 </TableRow>
               ) : (
-                data.domainServices.map((row) => {
+                data.emailServices.map((row) => {
                   const isOpen = openInfoId === row._id;
                   return (
                     <>
@@ -350,7 +350,7 @@ export default function SslServiceList() {
                           </IconButton>
                         </TableCell>
                         <TableCell>
-                          {hasPermission(PERMISSIONS.SSL_SERVICE.UPDATE) && (
+                          {hasPermission(PERMISSIONS.EMAIL_SERVICE_ITVT.UPDATE) && (
                             <IconButton 
                               color="primary" 
                               onClick={() => handleEdit(row._id || row.id)}
@@ -359,7 +359,7 @@ export default function SslServiceList() {
                               <IconEdit size={18} />
                             </IconButton>
                           )}
-                          {hasPermission(PERMISSIONS.SSL_SERVICE.DELETE) && (
+                          {hasPermission(PERMISSIONS.EMAIL_SERVICE_ITVT.DELETE) && (
                             <IconButton 
                               color="error" 
                               onClick={() => handleDeleteClick(row._id || row.id)}
@@ -371,7 +371,7 @@ export default function SslServiceList() {
                         </TableCell>
                         <TableCell>
                           <Typography variant="body1">Tên miền: {row.domainServiceId.name}</Typography>
-                          <Typography variant="body1">Gói SSL: {row.sslPlanId.name}</Typography>
+                          <Typography variant="body1">Gói Email: {row.emailPlanId.name}</Typography>
                         </TableCell>
                         <TableCell>{row.registeredAt ? formatDate(row.registeredAt) : 'N/A'}</TableCell>
                         <TableCell>{row.expiredAt ? formatDate(row.expiredAt) : 'N/A'}</TableCell>
@@ -402,7 +402,7 @@ export default function SslServiceList() {
                           <Collapse in={isOpen} timeout="auto" unmountOnExit>
                             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
                               <Box margin={1} sx={{ flex: 1 }}>
-                                <Typography variant="subtitle1">Chi tiết dịch vụ SSL</Typography>
+                                <Typography variant="subtitle1">Chi tiết dịch vụ email ITVT</Typography>
                                 <Typography variant="body2">- Khách hàng: {row.customerId?.fullName} / {maskPhoneNumber(row.customerId?.phoneNumber)}</Typography>
                                 <Typography variant="body2">- Xuất VAT: {row.vatIncluded ? 'Có' : 'Không'}</Typography>
                                 <Typography variant="body2">- Tổng giá nhập {row.vatIncluded ? 'Có' : 'Không'} VAT: {formatPrice(row.vatPrice)} / {row.periodValue} năm</Typography>
@@ -432,7 +432,7 @@ export default function SslServiceList() {
       ) : (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="h6" color="error">
-            Bạn không có quyền xem danh sách dịch vụ SSL
+            Bạn không có quyền xem danh sách dịch vụ email ITVT
           </Typography>
         </Paper>
       )}
@@ -448,7 +448,7 @@ export default function SslServiceList() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="dialog-description">
-            Bạn có chắc chắn muốn xóa dịch vụ SSL này không?
+            Bạn có chắc chắn muốn xóa dịch vụ email ITVT này không?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -462,4 +462,4 @@ export default function SslServiceList() {
       </Dialog>
     </Box>
   );
-} 
+}

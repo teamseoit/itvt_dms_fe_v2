@@ -163,6 +163,7 @@ export default function EmailServiceList() {
       if (response.data.success) {
         toast.success('Xóa dịch vụ Email thành công');
         fetchHostingServices(page + 1);
+        fetchCounts();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa dịch vụ Email');
@@ -403,7 +404,6 @@ export default function EmailServiceList() {
                               <Box margin={1} sx={{ flex: 1 }}>
                                 <Typography variant="subtitle1">Chi tiết dịch vụ Email</Typography>
                                 <Typography variant="body2">- Khách hàng: {row.customerId?.fullName} / {maskPhoneNumber(row.customerId?.phoneNumber)}</Typography>
-                                <Typography variant="body2">- Địa chỉ IP: {getIpAddress(row.serverPlanId)}</Typography>
                                 <Typography variant="body2">- Xuất VAT: {row.vatIncluded ? 'Có' : 'Không'}</Typography>
                                 <Typography variant="body2">- Tổng giá nhập {row.vatIncluded ? 'Có' : 'Không'} VAT: {formatPrice(row.vatPrice)} / {row.periodValue} năm</Typography>
                               </Box>
