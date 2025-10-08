@@ -194,5 +194,10 @@ export const PERMISSIONS = {
     VIEW: '667463d04bede188eee46d7b',
     UPDATE: '667463d04bede188dfb4610c',
     DELETE: '667463d04bede188dfb46c7c'
+  },
+
+  // REPORT
+  REPORT: {
+    VIEW: '643263d04bede188dfb46d77'
   }
 };

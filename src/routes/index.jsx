@@ -84,6 +84,9 @@ const WebsiteServiceAdd = Loadable(lazy(() => import('views/services/website/Web
 const ContractList = Loadable(lazy(() => import('views/contract/ContractList.jsx')));
 const ContractUpdate = Loadable(lazy(() => import('views/contract/ContractUpdate.jsx')));
 
+// Report Management
+const Report = Loadable(lazy(() => import('views/report/Report.jsx')));
+
 function RootLayout() {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <MainLayout /> : <MinimalLayout />;
@@ -501,6 +504,10 @@ const router = createBrowserRouter([
           {
             path: 'hop-dong/:id',
             element: <ContractUpdate />
+          },
+          {
+            path: 'thong-ke',
+            element: <Report />
           }
         ]
       }

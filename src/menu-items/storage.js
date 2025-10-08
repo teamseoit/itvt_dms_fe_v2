@@ -19,13 +19,13 @@ const storage = {
           url: '/thong-ke',
           breadcrumbs: true
         },
-        {
-          id: 'backup-data',
-          title: 'Backup dữ liệu',
-          type: 'item',
-          url: '/backup-du-lieu',
-          breadcrumbs: true
-        },
+        // {
+        //   id: 'backup-data',
+        //   title: 'Backup dữ liệu',
+        //   type: 'item',
+        //   url: '/backup-du-lieu',
+        //   breadcrumbs: true
+        // },
         {
           id: 'action-history',
           title: 'Lịch sử thao tác', 
