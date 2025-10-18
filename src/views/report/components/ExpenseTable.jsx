@@ -158,7 +158,7 @@ const ExpenseTable = ({ data, period, isMonthly }) => {
               <Avatar sx={{ bgcolor: 'warning.main', mx: 'auto', mb: 1 }}>
                 <MonetizationOn />
               </Avatar>
-              <Typography variant="h6" color="warning.main" fontWeight="bold">
+              <Typography variant="h6" color="secondary.main" fontWeight="bold">
                 {isMonthly ? data.summary?.totalRecords : data.summary?.totalRecords}
               </Typography>
               <Typography variant="body2" color="text.secondary">

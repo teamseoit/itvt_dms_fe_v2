@@ -16,7 +16,7 @@ import DOMAIN_SERVICE_API from '../../../services/itvt/domainService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
 
-import { formatCurrencyInput, parseCurrency } from '../../../utils/formatConstants';
+import { formatCurrencyInput, parseCurrency, phoneNumber } from '../../../utils/formatConstants';
 
 export default function ItvtSslServiceAdd() {
   const theme = useTheme();
@@ -306,7 +306,7 @@ export default function ItvtSslServiceAdd() {
             >
               {customers.map((customer) => (
                 <MenuItem key={customer._id} value={customer._id}>
-                  {customer.fullName}
+                  {customer.fullName} / {phoneNumber(customer.phoneNumber)} / {customer.email} / {customer.address}
                 </MenuItem>
               ))}
             </Select>

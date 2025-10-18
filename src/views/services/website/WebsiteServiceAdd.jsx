@@ -8,9 +8,9 @@ import {
 } from '@mui/material';
 import { IconArrowLeft } from '@tabler/icons-react';
 
-import WEBSITE_SERVICE_API from '../../../services/websiteService';
+import WEBSITE_SERVICE_API from '../../../services/services/websiteService';
 import CUSTOMER_API from '../../../services/customerService';
-import DOMAIN_SERVICE_API from '../../../services/domainService';
+import DOMAIN_SERVICE_API from '../../../services/services/domainService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
 
