@@ -9,10 +9,10 @@ import {
 import { IconArrowLeft } from '@tabler/icons-react';
 
 import WEBSITE_SERVICE_API from '../../../services/services/websiteService';
-import CUSTOMER_API from '../../../services/customerService';
 import DOMAIN_SERVICE_API from '../../../services/services/domainService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
+import CustomerAutocomplete from '../../../components/CustomerAutocomplete';
 
 import { formatCurrencyInput, parseCurrency } from '../../../utils/formatConstants';
 
@@ -23,7 +23,6 @@ export default function WebsiteServiceAdd() {
   const isEdit = Boolean(id);
 
   const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState([]);
   const [domainServices, setDomainServices] = useState([]);
   const [formData, setFormData] = useState({
     domainServiceId: '',
@@ -42,16 +41,6 @@ export default function WebsiteServiceAdd() {
     }));
   };
 
-  const fetchCustomers = async () => {
-    try {
-      const response = await CUSTOMER_API.getAll({ limit: 1000 });
-      if (response.data.success) {
-        setCustomers(response.data.data || []);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách khách hàng');
-    }
-  };
 
   const fetchDomainServices = async () => {
     try {
@@ -117,7 +106,6 @@ export default function WebsiteServiceAdd() {
   };
 
   useEffect(() => {
-    fetchCustomers();
     fetchDomainServices();
     if (isEdit) {
       fetchWebsiteService();
@@ -158,21 +146,17 @@ export default function WebsiteServiceAdd() {
               </Select>
             </FormControl>
 
-            <FormControl fullWidth required>
-              <InputLabel>Khách hàng</InputLabel>
-              <Select
-                name="customerId"
-                value={formData.customerId}
-                onChange={handleChange}
-                label="Khách hàng"
-              >
-                {customers.map((customer) => (
-                  <MenuItem key={customer._id} value={customer._id}>
-                    {customer.fullName} - {customer.phoneNumber}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <CustomerAutocomplete
+              value={formData.customerId}
+              onChange={(customerId) => {
+                setFormData(prev => ({
+                  ...prev,
+                  customerId: customerId
+                }));
+              }}
+              label="Khách hàng"
+              required={true}
+            />
 
             <TextField
               name="price"

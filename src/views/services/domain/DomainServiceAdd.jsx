@@ -9,11 +9,11 @@ import {
 import { IconArrowLeft } from '@tabler/icons-react';
 
 import DOMAIN_SERVICE_API from '../../../services/services/domainService';
-import CUSTOMER_API from '../../../services/customerService';
 import DOMAIN_PLAN_API from '../../../services/plans/domainPlanService';
 import SERVER_PLAN_API from '../../../services/plans/serverPlanService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
+import CustomerAutocomplete from '../../../components/CustomerAutocomplete';
 
 import { formatCurrencyInput, parseCurrency, phoneNumber } from '../../../utils/formatConstants';
 
@@ -24,7 +24,6 @@ export default function DomainServiceAdd() {
   const isEdit = Boolean(id);
 
   const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState([]);
   const [domainPlans, setDomainPlans] = useState([]);
   const [serverPlans, setServerPlans] = useState([]);
   const [originalServerPlanId, setOriginalServerPlanId] = useState('');
@@ -53,16 +52,6 @@ export default function DomainServiceAdd() {
     }));
   };
 
-  const fetchCustomers = async () => {
-    try {
-      const response = await CUSTOMER_API.getAll({ limit: 1000 });
-      if (response.data.success) {
-        setCustomers(response.data.data || []);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách khách hàng');
-    }
-  };
 
   const fetchDomainPlans = async () => {
     try {
@@ -99,11 +88,12 @@ export default function DomainServiceAdd() {
           serverPlanValue = serverPlanId;
         }
         
+        const customerId = domainServiceData.customerId?._id || domainServiceData.customerId || '';
         setFormData({
           name: domainServiceData.name || '',
           periodValue: domainServiceData.periodValue?.toString() || '',
           periodUnit: domainServiceData.periodUnit || 'năm',
-          customerId: domainServiceData.customerId?._id || domainServiceData.customerId || '',
+          customerId: customerId,
           domainPlanId: domainServiceData.domainPlanId?._id || domainServiceData.domainPlanId || '',
           serverPlanId: serverPlanValue,
           vatIncluded: domainServiceData.vatIncluded ?? false,
@@ -112,6 +102,7 @@ export default function DomainServiceAdd() {
           pingCloudflare: domainServiceData.pingCloudflare ?? false,
           status: domainServiceData.status ?? 1
         });
+        
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy thông tin dịch vụ domain');
@@ -120,7 +111,6 @@ export default function DomainServiceAdd() {
   };
 
   useEffect(() => {
-    fetchCustomers();
     fetchDomainPlans();
     fetchServerPlans();
     if (isEdit) {
@@ -273,22 +263,15 @@ export default function DomainServiceAdd() {
             </FormControl>
           </Box>
 
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel id="customer-label">Khách hàng (*)</InputLabel>
-            <Select
-              labelId="customer-label"
-              name="customerId"
-              value={formData.customerId}
-              onChange={handleChange}
-              label="Khách hàng (*)"
-            >
-              {customers.map((customer) => (
-                <MenuItem key={customer._id} value={customer._id}>
-                  {customer.fullName} / {phoneNumber(customer.phoneNumber)} / {customer.email} / {customer.address}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <CustomerAutocomplete
+            value={formData.customerId}
+            onChange={(customerId) => {
+              setFormData(prev => ({
+                ...prev,
+                customerId: customerId
+              }));
+            }}
+          />
 
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="domain-plan-label">Gói tên miền</InputLabel>

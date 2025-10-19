@@ -9,11 +9,11 @@ import {
 import { IconArrowLeft } from '@tabler/icons-react';
 
 import EMAIL_SERVICE_API from '../../../services/services/emailService';
-import CUSTOMER_API from '../../../services/customerService';
 import EMAIL_PLAN_API from '../../../services/plans/emailPlanService';
 import DOMAIN_SERVICE_API from '../../../services/services/domainService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
+import CustomerAutocomplete from '../../../components/CustomerAutocomplete';
 
 import { phoneNumber } from '../../../utils/formatConstants';
 
@@ -26,7 +26,6 @@ export default function EmailServiceAdd() {
   const [loading, setLoading] = useState(false);
   const [emailPlans, setEmailPlans] = useState([]);
   const [domainServices, setDomainServices] = useState([]);
-  const [customers, setCustomers] = useState([]);
   const [formData, setFormData] = useState({
     domainServiceId: '',
     emailPlanId: '',
@@ -49,16 +48,6 @@ export default function EmailServiceAdd() {
     }));
   };
 
-  const fetchCustomers = async () => {
-    try {
-      const response = await CUSTOMER_API.getAll({ limit: 1000 });
-      if (response.data.success) {
-        setCustomers(response.data.data || []);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách khách hàng');
-    }
-  };
 
   const fetchEmailPlans = async () => {
     try {
@@ -107,7 +96,6 @@ export default function EmailServiceAdd() {
 
   useEffect(() => {
     fetchEmailPlans();
-    fetchCustomers();
     fetchDomainServices();
     if (isEdit) {
       fetchEmailService();
@@ -271,22 +259,15 @@ export default function EmailServiceAdd() {
             </FormControl>
           </Box>
 
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel id="customer-label">Khách hàng (*)</InputLabel>
-            <Select
-              labelId="customer-label"
-              name="customerId"
-              value={formData.customerId}
-              onChange={handleChange}
-              label="Khách hàng (*)"
-            >
-              {customers.map((customer) => (
-                <MenuItem key={customer._id} value={customer._id}>
-                  {customer.fullName} / {phoneNumber(customer.phoneNumber)} / {customer.email} / {customer.address}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <CustomerAutocomplete
+            value={formData.customerId}
+            onChange={(customerId) => {
+              setFormData(prev => ({
+                ...prev,
+                customerId: customerId
+              }));
+            }}
+          />
           <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
             <TextField
               fullWidth

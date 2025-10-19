@@ -9,12 +9,12 @@ import {
 import { IconArrowLeft } from '@tabler/icons-react';
 
 import SSL_SERVICE_API from '../../../services/itvt/sslService';
-import CUSTOMER_API from '../../../services/customerService';
 import SSL_PLAN_API from '../../../services/plans/sslPlanService';
 import SERVER_PLAN_API from '../../../services/plans/serverPlanService';
 import DOMAIN_SERVICE_API from '../../../services/itvt/domainService';
 import usePermissions from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../constants/permissions';
+import CustomerAutocomplete from '../../../components/CustomerAutocomplete';
 
 import { formatCurrencyInput, parseCurrency, phoneNumber } from '../../../utils/formatConstants';
 
@@ -25,7 +25,6 @@ export default function ItvtSslServiceAdd() {
   const isEdit = Boolean(id);
 
   const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState([]);
   const [sslPlans, setSslPlans] = useState([]);
   const [serverPlans, setServerPlans] = useState([]);
   const [domainServices, setDomainServices] = useState([]);
@@ -55,16 +54,6 @@ export default function ItvtSslServiceAdd() {
     }));
   };
 
-  const fetchCustomers = async () => {
-    try {
-      const response = await CUSTOMER_API.getAll({ limit: 1000 });
-      if (response.data.success) {
-        setCustomers(response.data.data || []);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lấy danh sách khách hàng');
-    }
-  };
 
   const fetchSslPlans = async () => {
     try {
@@ -133,7 +122,6 @@ export default function ItvtSslServiceAdd() {
   };
 
   useEffect(() => {
-    fetchCustomers();
     fetchSslPlans();
     fetchServerPlans();
     fetchDomainServices();
@@ -295,22 +283,15 @@ export default function ItvtSslServiceAdd() {
             </FormControl>
           </Box>
 
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel id="customer-label">Khách hàng (*)</InputLabel>
-            <Select
-              labelId="customer-label"
-              name="customerId"
-              value={formData.customerId}
-              onChange={handleChange}
-              label="Khách hàng (*)"
-            >
-              {customers.map((customer) => (
-                <MenuItem key={customer._id} value={customer._id}>
-                  {customer.fullName} / {phoneNumber(customer.phoneNumber)} / {customer.email} / {customer.address}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <CustomerAutocomplete
+            value={formData.customerId}
+            onChange={(customerId) => {
+              setFormData(prev => ({
+                ...prev,
+                customerId: customerId
+              }));
+            }}
+          />
 
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="ssl-plan-label">Gói SSL</InputLabel>
