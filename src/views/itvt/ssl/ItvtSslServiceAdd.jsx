@@ -291,6 +291,7 @@ export default function ItvtSslServiceAdd() {
                 customerId: customerId
               }));
             }}
+            disabled={isEdit}
           />
 
           <FormControl fullWidth sx={{ mb: 3 }}>

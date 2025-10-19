@@ -156,6 +156,7 @@ export default function WebsiteServiceAdd() {
               }}
               label="Khách hàng"
               required={true}
+              disabled={isEdit}
             />
 
             <TextField

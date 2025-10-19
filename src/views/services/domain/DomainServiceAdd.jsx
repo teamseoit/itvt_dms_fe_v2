@@ -271,6 +271,7 @@ export default function DomainServiceAdd() {
                 customerId: customerId
               }));
             }}
+            disabled={isEdit}
           />
 
           <FormControl fullWidth sx={{ mb: 3 }}>

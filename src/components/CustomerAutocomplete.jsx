@@ -38,10 +38,10 @@ export default function CustomerAutocomplete({
       setFilteredCustomers(customers);
     } else {
       const filtered = customers.filter(customer =>
-        customer.fullName.toLowerCase().includes(searchValue.toLowerCase()) ||
-        customer.phoneNumber.includes(searchValue) ||
-        customer.email.toLowerCase().includes(searchValue.toLowerCase()) ||
-        customer.address.toLowerCase().includes(searchValue.toLowerCase())
+        (customer.fullName || '').toLowerCase().includes(searchValue.toLowerCase()) ||
+        (customer.phoneNumber || '').toString().includes(searchValue) ||
+        (customer.email || '').toLowerCase().includes(searchValue.toLowerCase()) ||
+        (customer.address || '').toLowerCase().includes(searchValue.toLowerCase())
       );
       setFilteredCustomers(filtered);
     }
@@ -77,7 +77,7 @@ export default function CustomerAutocomplete({
       fullWidth
       options={filteredCustomers}
       getOptionLabel={(option) => 
-        `${option.fullName} / ${phoneNumber(option.phoneNumber)} / ${option.email} / ${option.address}`
+        `${option.fullName || ''} / ${phoneNumber(option.phoneNumber || '')} / ${option.email || ''} / ${option.address || ''}`
       }
       value={customers.find(customer => customer._id === value) || null}
       onChange={handleChange}
@@ -97,10 +97,10 @@ export default function CustomerAutocomplete({
         <Box component="li" {...props}>
           <Box>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>
-              {option.fullName}
+              {option.fullName || ''}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {phoneNumber(option.phoneNumber)} / {option.email} / {option.address}
+              {phoneNumber(option.phoneNumber || '')} / {option.email || ''} / {option.address || ''}
             </Typography>
           </Box>
         </Box>

@@ -267,6 +267,7 @@ export default function SslServiceAdd() {
                 customerId: customerId
               }));
             }}
+            disabled={isEdit}
           />
           <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
             <TextField

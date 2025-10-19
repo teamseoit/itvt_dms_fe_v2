@@ -291,6 +291,7 @@ export default function ItvtEmailServiceAdd() {
                 customerId: customerId
               }));
             }}
+            disabled={isEdit}
           />
 
           <FormControl fullWidth sx={{ mb: 3 }}>

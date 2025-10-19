@@ -291,6 +291,7 @@ export default function ItvtHostingServiceAdd() {
                 customerId: customerId
               }));
             }}
+            disabled={isEdit}
           />
 
           <FormControl fullWidth sx={{ mb: 3 }}>
