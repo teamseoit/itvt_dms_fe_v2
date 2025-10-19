@@ -48,7 +48,7 @@ export default function Header() {
       <Box sx={{ flexGrow: 1 }} />
       <Box sx={{ flexGrow: 1 }} />
 
-      <NotificationSection />
+      {/* <NotificationSection /> */}
 
       <ProfileSection />
     </>
