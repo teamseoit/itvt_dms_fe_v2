@@ -4,7 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import {
   Box, Button, Typography, Paper, TextField, Grid, CircularProgress,
-  TableContainer, Table, TableHead, TableBody, TableRow, TableCell
+  TableContainer, Table, TableHead, TableBody, TableRow, TableCell,
+  FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import { IconArrowLeft } from '@tabler/icons-react';
 import { toast } from 'react-toastify';
@@ -40,6 +41,7 @@ export default function ContractUpdate() {
   const [errors, setErrors] = useState({});
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [amountPaidNext, setAmountPaidNext] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState(0); // 0: chuyển khoản, 1: tiền mặt
 
   useEffect(() => {
     if (!isEdit) {
@@ -52,7 +54,7 @@ export default function ContractUpdate() {
         setLoading(true);
         const res = await CONTRACT_API.getById(id);
         if (res?.data?.success) {
-          const { contractCode, customer, services, financials } = res.data.data;
+          const { contractCode, customer, services, financials, method } = res.data.data;
           setFormData({
             contractCode, customer, services,
             financials: {
@@ -62,6 +64,8 @@ export default function ContractUpdate() {
               isFullyPaid: financials.isFullyPaid || false
             }
           });
+          // Set phương thức thanh toán nếu có từ server, mặc định là 0 (chuyển khoản)
+          setPaymentMethod(method !== undefined ? method : 0);
         } else throw new Error();
       } catch {
         toast.error('Lỗi khi tải thông tin hợp đồng');
@@ -85,7 +89,17 @@ export default function ContractUpdate() {
     fetchPaymentHistory();
   }, [id, isEdit, navigate]);
 
-  useEffect(() => setAmountPaidNext(''), [paymentHistory]);
+  useEffect(() => {
+    setAmountPaidNext('');
+    setPaymentMethod(0); // Reset payment method when payment history changes
+  }, [paymentHistory]);
+
+  // Đảm bảo paymentMethod luôn có giá trị hợp lệ
+  useEffect(() => {
+    if (paymentMethod === null || paymentMethod === undefined) {
+      setPaymentMethod(0);
+    }
+  }, [paymentMethod]);
 
   const handleBack = () => navigate('/hop-dong');
 
@@ -107,6 +121,9 @@ export default function ContractUpdate() {
     if (paid < 0) newErrors.amountPaid = 'Số tiền đã thanh toán không được âm';
     if (paidNext < 0) newErrors.amountPaidNext = 'Số tiền thanh toán không được âm';
     if (actualPaid > totalAmount) newErrors.amountPaidNext = 'Tổng số tiền thanh toán không được lớn hơn tổng tiền hợp đồng';
+    if (paymentMethod === null || paymentMethod === undefined || (paymentMethod !== 0 && paymentMethod !== 1)) {
+      newErrors.paymentMethod = 'Vui lòng chọn phương thức thanh toán';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -134,6 +151,8 @@ export default function ContractUpdate() {
         ...prev,
         financials: { ...prev.financials, amountRemaining: remaining }
       }));
+    } else if (name === 'paymentMethod') {
+      setPaymentMethod(parseInt(value));
     }
   };
 
@@ -155,7 +174,15 @@ export default function ContractUpdate() {
         true
       );
 
-      const res = await CONTRACT_API.update(id, { amountPaid, isFullyPaid });
+      // Luôn gửi phương thức thanh toán
+      const updateData = { 
+        amountPaid, 
+        isFullyPaid, 
+        method: paymentMethod 
+      };
+
+      console.log('Sending update data:', updateData); // Debug log
+      const res = await CONTRACT_API.update(id, updateData);
       if (res?.data?.success) {
         toast.success('Cập nhật hợp đồng thành công');
         navigate('/hop-dong');
@@ -201,6 +228,7 @@ export default function ContractUpdate() {
               <ContractFinancialInfo
                 data={formData} errors={errors} onChange={handleChange}
                 status={status} paymentHistory={paymentHistory} amountPaidNext={amountPaidNext}
+                paymentMethod={paymentMethod}
               />
               <ContractServiceTable services={formData.services} theme={theme} loading={loading} />
               <PaymentHistoryTable paymentHistory={paymentHistory} theme={theme} />
@@ -241,7 +269,7 @@ const ContractBasicInfo = ({ data }) => (
   </Box>
 );
 
-const ContractFinancialInfo = ({ data, errors, onChange, status, paymentHistory, amountPaidNext }) => {
+const ContractFinancialInfo = ({ data, errors, onChange, status, paymentHistory, amountPaidNext, paymentMethod }) => {
   const { totalAmount, amountPaid, amountRemaining, isFullyPaid } = data.financials;
   return (
     <Box sx={{ mb: 3 }}>
@@ -256,15 +284,38 @@ const ContractFinancialInfo = ({ data, errors, onChange, status, paymentHistory,
             disabled={isFullyPaid || paymentHistory.length > 0}
           />
         </Grid>
-        {paymentHistory.length > 0 && !isFullyPaid && (
-          <Grid item xs={12}>
-            <TextField
-              fullWidth label="Số tiền còn lại để thanh toán" name="amountPaidNext"
-              value={amountPaidNext} onChange={onChange} error={!!errors.amountPaidNext}
-              helperText={errors.amountPaidNext || `Tối đa: ${formatPrice(totalAmount - parseCurrency(amountPaid || '0'))}`}
-              disabled={isFullyPaid}
-            />
-          </Grid>
+        {!isFullyPaid && (
+          <>
+            {paymentHistory.length > 0 && (
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth label="Số tiền còn lại để thanh toán" name="amountPaidNext"
+                  value={amountPaidNext} onChange={onChange} error={!!errors.amountPaidNext}
+                  helperText={errors.amountPaidNext || `Tối đa: ${formatPrice(totalAmount - parseCurrency(amountPaid || '0'))}`}
+                  disabled={isFullyPaid}
+                />
+              </Grid>
+            )}
+            <Grid item xs={12} md={paymentHistory.length > 0 ? 6 : 12}>
+              <FormControl fullWidth error={!!errors.paymentMethod}>
+                <InputLabel>Phương thức thanh toán</InputLabel>
+                <Select
+                  name="paymentMethod"
+                  value={paymentMethod}
+                  onChange={onChange}
+                  disabled={isFullyPaid}
+                >
+                  <MenuItem value={0}>Chuyển khoản</MenuItem>
+                  <MenuItem value={1}>Tiền mặt</MenuItem>
+                </Select>
+                {errors.paymentMethod && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                    {errors.paymentMethod}
+                  </Typography>
+                )}
+              </FormControl>
+            </Grid>
+          </>
         )}
         {!isFullyPaid && (
           <Grid item xs={12}>
@@ -360,7 +411,7 @@ const PaymentHistoryTable = ({ paymentHistory, theme }) => (
               <TableRow hover key={row._id}>
                 <TableCell>{formatDate(row.paymentDate)}</TableCell>
                 <TableCell>{formatPrice(row.amount)}</TableCell>
-                <TableCell>{row.method}</TableCell>
+                <TableCell>{row.method === 0 ? 'Chuyển khoản' : row.method === 1 ? 'Tiền mặt' : row.method}</TableCell>
                 <TableCell>{row.createdBy}</TableCell>
               </TableRow>
             ))}
