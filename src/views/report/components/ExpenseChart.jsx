@@ -66,6 +66,7 @@ const ExpenseChart = ({ data, period, isMonthly }) => {
       const serviceData = services.map(service => ({
         service,
         totalPrice: data.data[service]?.totalPrice || 0,
+        totalPurchasePrice: data.data[service]?.totalPurchasePrice || 0,
         count: data.data[service]?.count || 0
       }));
 
@@ -75,20 +76,15 @@ const ExpenseChart = ({ data, period, isMonthly }) => {
           {
             label: 'Tổng chi phí (VNĐ)',
             data: serviceData.map(item => item.totalPrice),
-            backgroundColor: [
-              'rgba(54, 162, 235, 0.8)',
-              'rgba(255, 99, 132, 0.8)',
-              'rgba(255, 205, 86, 0.8)',
-              'rgba(75, 192, 192, 0.8)',
-              'rgba(153, 102, 255, 0.8)'
-            ],
-            borderColor: [
-              'rgba(54, 162, 235, 1)',
-              'rgba(255, 99, 132, 1)',
-              'rgba(255, 205, 86, 1)',
-              'rgba(75, 192, 192, 1)',
-              'rgba(153, 102, 255, 1)'
-            ],
+            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          },
+          {
+            label: 'Tổng giá mua (VNĐ)',
+            data: serviceData.map(item => item.totalPurchasePrice),
+            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+            borderColor: 'rgba(75, 192, 192, 1)',
             borderWidth: 1
           }
         ]
@@ -105,6 +101,13 @@ const ExpenseChart = ({ data, period, isMonthly }) => {
             data: monthlyData.map(item => item.monthlyTotal),
             backgroundColor: 'rgba(54, 162, 235, 0.8)',
             borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          },
+          {
+            label: 'Tổng giá mua (VNĐ)',
+            data: monthlyData.map(item => item.monthlyPurchaseTotal || 0),
+            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+            borderColor: 'rgba(75, 192, 192, 1)',
             borderWidth: 1
           }
         ]
@@ -264,7 +267,7 @@ const ExpenseChart = ({ data, period, isMonthly }) => {
                 <BarChart />
               </Avatar>
               <Typography variant="h6" fontWeight="bold">
-                Doanh thu theo tháng
+                So sánh chi phí và giá mua
               </Typography>
             </Box>
             <Box height="300px">

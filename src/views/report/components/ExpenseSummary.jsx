@@ -52,6 +52,14 @@ const ExpenseSummary = ({ data, period, isMonthly }) => {
     }
   };
 
+  const getTotalPurchasePrice = () => {
+    if (isMonthly) {
+      return data.monthlyPurchaseTotal || 0;
+    } else {
+      return data.grandPurchaseTotal || 0;
+    }
+  };
+
   const getTotalRecords = () => {
     if (isMonthly) {
       return data.summary?.totalRecords || 0;
@@ -218,6 +226,7 @@ const ExpenseSummary = ({ data, period, isMonthly }) => {
         : data.yearlyTotals[service];
       
       const amount = serviceData?.totalPrice || 0;
+      const purchaseAmount = serviceData?.totalPurchasePrice || 0;
       const percentage = getTotalExpense() > 0 
         ? ((amount / getTotalExpense()) * 100).toFixed(1) 
         : 0;
@@ -225,6 +234,7 @@ const ExpenseSummary = ({ data, period, isMonthly }) => {
       return {
         service,
         amount,
+        purchaseAmount,
         percentage: parseFloat(percentage)
       };
     });
@@ -264,6 +274,15 @@ const ExpenseSummary = ({ data, period, isMonthly }) => {
                     </Box>
                   </Box>
                   
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', ml: 2 }}>
+                      Giá mua:
+                    </Typography>
+                    <Typography variant="body2" color="success.main" fontWeight="medium" sx={{ fontSize: '0.8rem' }}>
+                      {formatCurrency(item.purchaseAmount)}
+                    </Typography>
+                  </Box>
+                  
                   {/* Thanh tiến trình */}
                   <Box 
                     sx={{ 
@@ -299,7 +318,7 @@ const ExpenseSummary = ({ data, period, isMonthly }) => {
       {/* 6 Cards trong grid 2x3 */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Row 1 */}
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <SummaryCard
             title="Tổng chi phí"
             value={formatCurrency(getTotalExpense())}
@@ -311,19 +330,31 @@ const ExpenseSummary = ({ data, period, isMonthly }) => {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
+          <SummaryCard
+            title="Tổng giá mua"
+            value={formatCurrency(getTotalPurchasePrice())}
+            icon={<MonetizationOn />}
+            color="success"
+            subtitle="Tổng giá mua các dịch vụ"
+            trend="up"
+            trendValue="+8%"
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
           <SummaryCard
             title="Số lượng dịch vụ"
             value={getTotalServices()}
             icon={<Assessment />}
-            color="success"
+            color="warning"
             subtitle="Dịch vụ đang hoạt động"
             trend="up"
             trendValue="+2"
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <SummaryCard
             title="Tổng số bản ghi"
             value={getTotalRecords()}

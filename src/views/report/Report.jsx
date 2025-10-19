@@ -259,6 +259,19 @@ const Report = () => {
                 <Grid item xs={12} md={6}>
                   <Box sx={{ p: 2, backgroundColor: 'white', borderRadius: 2, border: '1px solid #e0e0e0' }}>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <strong>Tổng giá mua:</strong>
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium" color="success.main">
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND'
+                      }).format(isMonthly ? reportData.monthlyPurchaseTotal || 0 : reportData.grandPurchaseTotal || 0)}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ p: 2, backgroundColor: 'white', borderRadius: 2, border: '1px solid #e0e0e0' }}>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
                       <strong>Loại báo cáo:</strong>
                     </Typography>
                     <Typography variant="body1" fontWeight="medium">

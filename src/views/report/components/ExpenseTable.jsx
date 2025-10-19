@@ -65,6 +65,7 @@ const ExpenseTable = ({ data, period, isMonthly }) => {
         id: service,
         name: service,
         totalPrice: data.data[service]?.totalPrice || 0,
+        totalPurchasePrice: data.data[service]?.totalPurchasePrice || 0,
         count: data.data[service]?.count || 0,
         percentage: data.totalExpense > 0 
           ? ((data.data[service]?.totalPrice || 0) / data.totalExpense * 100).toFixed(1)
@@ -78,6 +79,7 @@ const ExpenseTable = ({ data, period, isMonthly }) => {
         name: monthData.month,
         monthNumber: monthData.monthNumber,
         totalPrice: monthData.monthlyTotal,
+        totalPurchasePrice: monthData.monthlyPurchaseTotal || 0,
         count: Object.values(monthData.services).reduce((sum, service) => sum + service.count, 0),
         percentage: data.grandTotal > 0 
           ? (monthData.monthlyTotal / data.grandTotal * 100).toFixed(1)
@@ -120,7 +122,7 @@ const ExpenseTable = ({ data, period, isMonthly }) => {
     <Box>
       {/* Header với thống kê tổng quan */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
+        <Grid item xs={12} md={2.4}>
           <Card sx={{ background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' }}>
             <CardContent sx={{ textAlign: 'center' }}>
               <Avatar sx={{ bgcolor: 'primary.main', mx: 'auto', mb: 1 }}>
@@ -136,13 +138,29 @@ const ExpenseTable = ({ data, period, isMonthly }) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={3}>
+        <Grid item xs={12} md={2.4}>
           <Card sx={{ background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)' }}>
             <CardContent sx={{ textAlign: 'center' }}>
               <Avatar sx={{ bgcolor: 'success.main', mx: 'auto', mb: 1 }}>
-                <TrendingUp />
+                <MonetizationOn />
               </Avatar>
               <Typography variant="h6" color="success.main" fontWeight="bold">
+                {formatCurrency(isMonthly ? data.monthlyPurchaseTotal : data.grandPurchaseTotal || 0)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Tổng giá mua
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={2.4}>
+          <Card sx={{ background: 'linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%)' }}>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Avatar sx={{ bgcolor: 'warning.main', mx: 'auto', mb: 1 }}>
+                <TrendingUp />
+              </Avatar>
+              <Typography variant="h6" color="secondary.main" fontWeight="bold">
                 {isMonthly ? data.summary?.totalServices : data.summary?.totalServices}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -152,11 +170,11 @@ const ExpenseTable = ({ data, period, isMonthly }) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={3}>
-          <Card sx={{ background: 'linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%)' }}>
+        <Grid item xs={12} md={2.4}>
+          <Card sx={{ background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)' }}>
             <CardContent sx={{ textAlign: 'center' }}>
-              <Avatar sx={{ bgcolor: 'warning.main', mx: 'auto', mb: 1 }}>
-                <MonetizationOn />
+              <Avatar sx={{ bgcolor: 'secondary.main', mx: 'auto', mb: 1 }}>
+                <Timeline />
               </Avatar>
               <Typography variant="h6" color="secondary.main" fontWeight="bold">
                 {isMonthly ? data.summary?.totalRecords : data.summary?.totalRecords}
@@ -168,13 +186,13 @@ const ExpenseTable = ({ data, period, isMonthly }) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={3}>
-          <Card sx={{ background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)' }}>
+        <Grid item xs={12} md={2.4}>
+          <Card sx={{ background: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%)' }}>
             <CardContent sx={{ textAlign: 'center' }}>
-              <Avatar sx={{ bgcolor: 'secondary.main', mx: 'auto', mb: 1 }}>
-                <Timeline />
+              <Avatar sx={{ bgcolor: 'error.main', mx: 'auto', mb: 1 }}>
+                <Assessment />
               </Avatar>
-              <Typography variant="h6" color="secondary.main" fontWeight="bold">
+              <Typography variant="h6" color="error.main" fontWeight="bold">
                 {period}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -202,6 +220,9 @@ const ExpenseTable = ({ data, period, isMonthly }) => {
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                     Tổng chi phí
+                  </TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                    Tổng giá mua
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                     Số lượng
@@ -241,6 +262,11 @@ const ExpenseTable = ({ data, period, isMonthly }) => {
                     <TableCell align="right">
                       <Typography variant="body2" fontWeight="bold" color="primary.main">
                         {formatCurrency(row.totalPrice)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight="bold" color="success.main">
+                        {formatCurrency(row.totalPurchasePrice)}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
@@ -291,6 +317,11 @@ const ExpenseTable = ({ data, period, isMonthly }) => {
                   <TableCell align="right">
                     <Typography variant="subtitle2" fontWeight="bold" color="primary.main">
                       {formatCurrency(isMonthly ? data.totalExpense : data.grandTotal)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="subtitle2" fontWeight="bold" color="success.main">
+                      {formatCurrency(isMonthly ? data.monthlyPurchaseTotal : data.grandPurchaseTotal || 0)}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">

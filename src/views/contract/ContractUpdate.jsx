@@ -300,6 +300,8 @@ const ContractFinancialInfo = ({ data, errors, onChange, status, paymentHistory,
               <FormControl fullWidth error={!!errors.paymentMethod}>
                 <InputLabel>Phương thức thanh toán</InputLabel>
                 <Select
+                  labelId="payment-method-label"
+                  label="Phương thức thanh toán"
                   name="paymentMethod"
                   value={paymentMethod}
                   onChange={onChange}
