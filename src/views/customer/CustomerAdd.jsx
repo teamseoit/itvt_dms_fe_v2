@@ -38,6 +38,7 @@ export default function CustomerAdd() {
     gender: 0,
     identityNumber: '',
     phoneNumber: '',
+    dateOfBirth: '',
     address: '',
     companyName: '',
     taxCode: '',
@@ -60,6 +61,7 @@ export default function CustomerAdd() {
         setFormData(prev => ({
           ...prev,
           ...data,
+          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString().split('T')[0] : '',
           identityCardFrontImagePreview: data.identityCardFrontImage ? convertToFullUrl(data.identityCardFrontImage) : '',
           identityCardBackImagePreview: data.identityCardBackImage ? convertToFullUrl(data.identityCardBackImage) : '',
         }));
@@ -205,6 +207,16 @@ export default function CustomerAdd() {
                   }
                 }}
                 inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                sx={{ mt: 2 }}
+              />
+              <TextField
+                fullWidth
+                label="Ngày sinh"
+                name="dateOfBirth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
                 sx={{ mt: 2 }}
               />
               <TextField
