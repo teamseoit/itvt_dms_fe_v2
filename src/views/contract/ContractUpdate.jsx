@@ -22,6 +22,7 @@ const columns = [
   { id: 'name', label: 'Tên dịch vụ', minWidth: 200 },
   { id: 'registeredAt', label: 'Ngày đăng ký', minWidth: 110 },
   { id: 'expiredAt', label: 'Ngày hết hạn', minWidth: 110 },
+  { id: 'price', label: 'Giá', minWidth: 150 },
   { id: 'vat', label: 'VAT', minWidth: 10 }
 ];
 
@@ -379,6 +380,11 @@ const ContractServiceTable = ({ services, theme, loading }) => (
                   {formatDate(row.serviceType === 'website' 
                     ? row.serviceId.endDate || 'N/A'
                     : row.serviceId.expiredAt)}
+                </TableCell>
+                <TableCell>
+                  {row.serviceType === 'website' 
+                    ? formatPrice(row.serviceId.price) || 'Website Service'
+                    : formatPrice(row.serviceId.totalPrice)}
                 </TableCell>
                 <TableCell>
                   {row.serviceType === 'website' 
